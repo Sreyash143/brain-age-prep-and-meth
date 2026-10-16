@@ -1,0 +1,22 @@
+{
+  "manifest_scans": 3336,
+  "subjects": 1098,
+  "train_scans": 2361,
+  "val_scans": 480,
+  "test_scans": 495,
+  "test_cn_scans": 358,
+  "models_trained": 3,
+  "mae_years": 4.698356743708027,
+  "rmse_years": 6.190173482393294,
+  "pearson_r": 0.8026554575074245,
+  "r2": 0.610897020650713,
+  "raw_mae_years": 4.720532227076263,
+  "mean_bag_years": 0.7355679726300728,
+  "bag_sd_years": 6.246615001909709,
+  "ensemble_prediction_sd_years": 0.9416872729297439,
+  "age_group_accuracy": 0.7131313131313132,
+  "age_group_macro_f1": 0.689335928505141,
+  "repeat_pairs": 149,
+  "sigma_sem_years": 0.8908756217849843,
+  "mdc95_years": 2.469381237963142
+}

@@ -1,0 +1,13 @@
+{
+  "python": "3.12.14",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "seed": 42,
+  "date": "2026-10-08 10:51:42.261995",
+  "numpy": "2.3.5",
+  "pandas": "2.3.3",
+  "scipy": "1.15.3",
+  "sklearn": "1.9.1",
+  "torch": "2.14.0+cu130",
+  "statsmodels": "0.15.0",
+  "lifelines": "0.30.3"
+}

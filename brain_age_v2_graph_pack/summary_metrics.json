@@ -1,0 +1,24 @@
+{
+  "records_in_prediction_table": 495,
+  "unique_subjects": 165,
+  "unique_mri_labels": 304,
+  "repeat_pairs": 149,
+  "raw_prediction_mae_from_csv_years": 4.732786988229462,
+  "raw_prediction_rmse_from_csv_years": 6.421634275912492,
+  "raw_prediction_mean_signed_error_years": -1.1068037846112495,
+  "raw_prediction_pearson_r": 0.7614617378158052,
+  "mean_BAG_years": -0.11713433150401233,
+  "sd_BAG_years": 6.62804481688934,
+  "reported_final_statistics_json": {
+    "mae_years": 4.824725125170669,
+    "rmse_years": 6.329075248424568,
+    "pearson_r": 0.788753568564893,
+    "r2": 0.5932388808538385,
+    "raw_mae_years": 4.732786988229462,
+    "mean_bag_years": -0.11713433150401233,
+    "bag_sd_years": 6.62804481688934,
+    "ensemble_prediction_sd_years": 1.803582781833754,
+    "age_group_accuracy": 0.7090909090909091
+  },
+  "caveat": "The CSV contains repeated scans/runs (495 records, 165 subjects); scan-level rows are not independent. The JSON's reported MAE differs from raw MAE computed directly from predicted_age and age columns. Clarify the exact metric definition/evaluation subset before reporting."
+}

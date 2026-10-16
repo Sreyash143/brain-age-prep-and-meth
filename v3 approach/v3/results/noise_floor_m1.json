@@ -1,0 +1,84 @@
+{
+  "tag": "m1",
+  "n_repeat_sessions": 777,
+  "n_subjects": 606,
+  "sessions_with_3plus_runs": 18,
+  "sigma_SEM": 0.6697957172632136,
+  "sigma_SEM_CI": [
+    0.6238242891350868,
+    0.7190488289878315
+  ],
+  "MDC95": 1.8565790072511814,
+  "MDC95_CI": [
+    1.7291527096558856,
+    1.9931016676876439
+  ],
+  "sigma_SEM_robust_MAD": 0.5140644594945388,
+  "n_sessions_abs_diff_gt5y": 0,
+  "ICC_A1_repeats": 0.9850012793427525,
+  "ICC_wide_cohort": 0.9855816506939192,
+  "between_subject_var_first_session": 31.11495590378981,
+  "heteroscedasticity_spearman_vs_within_SD": {
+    "age": {
+      "rho": -0.21615559826510855,
+      "p": 1.1455332672195922e-09
+    },
+    "mean_bag": {
+      "rho": 0.02811665321272297,
+      "p": 0.4338404398707272
+    },
+    "ens_sd": {
+      "rho": 0.12550477869959492,
+      "p": 0.00045378137466063926
+    }
+  },
+  "sigma_SEM_by_age_band": [
+    {
+      "band": "0-60",
+      "n_sessions": 120,
+      "sigma_SEM": 0.8809305596820723
+    },
+    {
+      "band": "60-70",
+      "n_sessions": 249,
+      "sigma_SEM": 0.6740788319437813
+    },
+    {
+      "band": "70-80",
+      "n_sessions": 282,
+      "sigma_SEM": 0.6400463003793572
+    },
+    {
+      "band": "80-120",
+      "n_sessions": 126,
+      "sigma_SEM": 0.46334305629234057
+    }
+  ],
+  "sigma_SEM_CN": 0.6635096754322718,
+  "sigma_SEM_impaired": 0.6193020742766324,
+  "n_CN_sessions": 535,
+  "n_impaired_sessions": 150,
+  "levene_p": 0.011085358930524722,
+  "SEM_ratio_impaired_over_CN": 0.9333730873979518,
+  "SEM_ratio_CI": [
+    0.7703892057671216,
+    1.095571022068693
+  ],
+  "uncertainty_calibration": {
+    "all": {
+      "n": 777,
+      "spearman_rho": 0.12550477869959492,
+      "p": 0.00045378137466063926
+    },
+    "CN": {
+      "n": 535,
+      "spearman_rho": 0.15692878670806423,
+      "p": 0.00026855403725702657
+    },
+    "impaired": {
+      "n": 150,
+      "spearman_rho": -0.01143339703986844,
+      "p": 0.8895583585131936
+    }
+  }
+}

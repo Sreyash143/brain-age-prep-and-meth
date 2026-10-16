@@ -1,0 +1,9 @@
+{
+  "sigma_outside_survival_cohort": 0.681848505405787,
+  "n_sessions_outside": 706,
+  "sigma_split_half_median": 0.669555041496728,
+  "sigma_split_half_IQR": [
+    0.6522039260851452,
+    0.6855005107006962
+  ]
+}

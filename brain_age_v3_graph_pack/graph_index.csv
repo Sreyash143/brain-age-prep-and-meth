@@ -1,0 +1,41 @@
+file,title,category
+01_cohort_counts.png,Cohort and data coverage counts,Cohort
+02_scan_age_distribution.png,Age distribution of MRI scans,Cohort
+03_subject_age_distribution.png,Age distribution of unique subjects,Cohort
+04_subjects_per_fold.png,Subject-level five-fold CV balance,Cohort
+05_subject_sex_distribution.png,Sex distribution among unique subjects,Cohort
+06_actual_vs_predicted_raw.png,Raw out-of-fold predicted vs chronological age,Prediction performance
+07_actual_vs_predicted_corrected.png,Bias-corrected brain age vs chronological age,Prediction performance
+08_raw_error_distribution.png,Raw prediction error distribution,Prediction performance
+09_absolute_error_distribution.png,Absolute prediction error distribution,Prediction performance
+10_bag_distribution.png,Brain Age Gap distribution after fold-based correction,Prediction performance
+11_bag_vs_age.png,BAG vs chronological age,Prediction performance
+12_error_vs_predicted_age.png,Raw error vs predicted age,Prediction performance
+13_mae_by_age_band.png,MAE by age band,Prediction performance
+14_mean_bag_by_age_band.png,Mean BAG by age band,Prediction performance
+15_error_tolerance_curve.png,Share of predictions within absolute-error thresholds,Prediction performance
+16_key_error_metrics.png,V3 m1 error metrics,Prediction performance
+17_calibration_slope_by_fold.png,Fold-specific calibration slopes,Prediction performance
+18_calibration_intercept_by_fold.png,Fold-specific calibration intercepts,Prediction performance
+19_repeat_run_difference.png,Repeat-run prediction differences,Repeatability / uncertainty
+20_repeat_within_session_sd.png,Within-session prediction variability,Repeatability / uncertainty
+21_repeatability_sem_by_age.png,Repeatability SEM by age band,Repeatability / uncertainty
+22_repeatability_sem_by_group.png,Repeatability SEM by cognitive group,Repeatability / uncertainty
+23_repeatability_metrics.png,"SEM, robust SEM and MDC95",Repeatability / uncertainty
+24_uncertainty_calibration.png,Predicted uncertainty vs observed variability,Repeatability / uncertainty
+25_qc_flag_counts.png,QC flag counts,QC
+26_qc_brain_fraction_vs_similarity.png,Brain fraction vs template similarity,QC
+27_qc_similarity_vs_zscore.png,Template similarity vs standardized score,QC
+28_longitudinal_raw_slope_distribution.png,Raw longitudinal BAG slopes,Longitudinal / sensitivity
+29_longitudinal_shrunk_slope_distribution.png,Reliability-shrunk longitudinal BAG slopes,Longitudinal / sensitivity
+30_raw_vs_shrunk_slopes.png,Raw vs shrunk longitudinal slopes,Longitudinal / sensitivity
+31_slope_vs_uncertainty.png,Slope estimate vs standard error,Longitudinal / sensitivity
+32_baseline_bag_vs_slope.png,Baseline BAG vs longitudinal slope,Longitudinal / sensitivity
+33_followup_span_vs_scan_count.png,Follow-up span vs number of scans,Longitudinal / sensitivity
+34_robustness_reliability_vs_sigma.png,Sensitivity of reliability to assumed noise,Longitudinal / sensitivity
+35_zero_shot_probe_mae.png,Zero-shot input-convention probe,Longitudinal / sensitivity
+36_age_group_accuracy_vs_baseline.png,Three-class accuracy vs majority baseline,Model comparison / supplementary
+37_model_variant_error_comparison.png,Model variant error comparison,Model comparison / supplementary
+38_model_variant_correlation.png,Model variant correlation,Model comparison / supplementary
+39_raw_mae_by_fold.png,Raw MAE by held-out fold,Model comparison / supplementary
+40_age_distribution_by_cdr_group.png,Age distribution by CDR group,Model comparison / supplementary

@@ -1,0 +1,41 @@
+figure_number,filename,category
+1,01_actual_age_distribution.png,Cohort
+2,02_raw_predicted_age_distribution.png,Cohort
+3,03_corrected_brain_age_distribution.png,Cohort
+4,04_sex_distribution.png,Cohort
+5,05_cdrtot_distribution.png,Cohort
+6,06_mmse_distribution.png,Cohort
+7,07_test_scans_per_subject.png,Cohort
+8,08_test_visits_per_subject.png,Cohort
+9,09_actual_vs_raw_predicted_age.png,Prediction performance
+10,10_actual_vs_brain_age.png,Prediction performance
+11,11_raw_signed_error_distribution.png,Prediction performance
+12,12_raw_absolute_error_distribution.png,Prediction performance
+13,13_raw_squared_error_distribution.png,Prediction performance
+14,14_raw_error_vs_age.png,Prediction performance
+15,15_raw_absolute_error_vs_age.png,Prediction performance
+16,16_raw_residual_vs_prediction.png,Prediction performance
+17,17_bland_altman_raw_prediction.png,Prediction performance
+18,18_calibration_by_age_band.png,Prediction performance
+19,19_mae_by_age_band.png,Subgroup performance
+20,20_bias_by_age_band.png,Subgroup performance
+21,21_rmse_by_age_band.png,Subgroup performance
+22,22_mae_by_sex.png,Subgroup performance
+23,23_mae_by_cdrtot.png,Subgroup performance
+24,24_raw_predicted_age_vs_mmse.png,Subgroup performance
+25,25_bag_distribution.png,Brain Age Gap
+26,26_bag_vs_age.png,Brain Age Gap
+27,27_bag_by_cdrtot.png,Brain Age Gap
+28,28_bag_by_sex.png,Brain Age Gap
+29,29_prediction_uncertainty_distribution.png,Uncertainty
+30,30_uncertainty_vs_raw_absolute_error.png,Uncertainty
+31,31_error_by_uncertainty_quartile.png,Uncertainty
+32,32_repeat_bag_run1_vs_run2.png,Repeatability
+33,33_repeat_bag_difference.png,Repeatability
+34,34_repeat_bag_bland_altman.png,Repeatability
+35,35_repeat_difference_by_cdrtot.png,Repeatability
+36,36_headline_error_and_repeatability_metrics.png,Headline metrics
+37,37_headline_fit_metrics.png,Headline metrics
+38,38_prediction_sd_by_age.png,Longitudinal and uncertainty
+39,39_longitudinal_brain_age_trajectories.png,Longitudinal and uncertainty
+40,40_longitudinal_visit_intervals.png,Longitudinal and uncertainty

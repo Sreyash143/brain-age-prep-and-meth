@@ -1,0 +1,55 @@
+{
+  "variant": "m1",
+  "n_CN_scans": 1896,
+  "n_CN_subjects": 767,
+  "MAE": 3.7646565741252074,
+  "MAE_CI95": [
+    3.5570406862318085,
+    3.9793526903278527
+  ],
+  "correction_method": "invert",
+  "MAE_alt_method_NOT_REPORTABLE": 2.814516856543443,
+  "RMSE": 4.81203329609426,
+  "pearson_r": 0.8845329720639536,
+  "R2": 0.7165691421806206,
+  "raw_MAE_uncorrected": 3.2667479177215193,
+  "median_abs_error": 3.1070949808683537,
+  "frac_abs_BAG_gt10": 0.04272151898734177,
+  "BAG_vs_age_slope": 0.009338559385397212,
+  "BAG_vs_age_p": 0.44525288473278424,
+  "mean_BAG_CN": 0.01799950438948124,
+  "age_group_acc_3class": 0.7816455696202531,
+  "age_group_majority_baseline": 0.5780590717299579,
+  "age_group_acc_CI95": [
+    0.7567630016143911,
+    0.8044342250172122
+  ],
+  "session_averaged_MAE": 3.759997448400704,
+  "bias_params_per_fold": {
+    "0": {
+      "slope": 0.7652989920198405,
+      "intercept": 16.455651194453367,
+      "n_sessions": 1086
+    },
+    "1": {
+      "slope": 0.7261334035130097,
+      "intercept": 18.957849427609155,
+      "n_sessions": 1057
+    },
+    "2": {
+      "slope": 0.7413369797730285,
+      "intercept": 17.85530802441326,
+      "n_sessions": 1088
+    },
+    "3": {
+      "slope": 0.7588702401926279,
+      "intercept": 16.769820189202015,
+      "n_sessions": 1084
+    },
+    "4": {
+      "slope": 0.7632455437920447,
+      "intercept": 16.57350683598022,
+      "n_sessions": 1089
+    }
+  }
+}

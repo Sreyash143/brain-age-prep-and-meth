@@ -1,0 +1,35 @@
+{
+  "scans_with_npz": 3337,
+  "subjects_with_npz": 1098,
+  "scans_missing_age": 1,
+  "scans_missing_CDR": 319,
+  "sessions_missing_CDR": 208,
+  "sessions": 2113,
+  "sessions_with_repeat": 976,
+  "sessions_with_3plus_runs": 209,
+  "subjects_3plus_sessions": 270,
+  "CN_scans": 2321,
+  "CN_subjects": 788,
+  "impaired_scans": 697,
+  "fold_subject_counts": {
+    "0": 220,
+    "1": 220,
+    "2": 220,
+    "3": 219,
+    "4": 219
+  },
+  "fold_CN_scan_counts": {
+    "0": 479,
+    "1": 473,
+    "2": 442,
+    "3": 475,
+    "4": 452
+  },
+  "fold_impaired_subject_counts": {
+    "0": 68,
+    "1": 68,
+    "2": 68,
+    "3": 67,
+    "4": 67
+  }
+}

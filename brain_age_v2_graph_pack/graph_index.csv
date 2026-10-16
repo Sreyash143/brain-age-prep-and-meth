@@ -1,0 +1,41 @@
+number,filename,title,note
+1,01_age_distribution.png,Age distribution of evaluated MRI scans,495 scan records; repeated scans included.
+2,02_predicted_age_distribution.png,Distribution of predicted brain age,
+3,03_brain_age_distribution.png,Distribution of bias-adjusted brain age,
+4,04_sex_distribution.png,Sex distribution in evaluated scans,
+5,05_cdr_distribution.png,CDR total score distribution,
+6,06_mmse_distribution.png,MMSE score distribution,
+7,07_scans_per_subject.png,Number of scans per subject,
+8,08_visits_per_subject_hist.png,Distribution of scan counts per subject,
+9,09_actual_vs_predicted.png,Chronological age vs predicted age,
+10,10_actual_vs_brain_age.png,Chronological age vs bias-adjusted brain age,
+11,11_signed_error_distribution.png,Distribution of signed prediction error,
+12,12_absolute_error_distribution.png,Distribution of absolute prediction error,
+13,13_squared_error_distribution.png,Distribution of squared prediction error,
+14,14_error_vs_age.png,Signed prediction error vs chronological age,
+15,15_abs_error_vs_age.png,Absolute prediction error vs chronological age,
+16,16_residual_vs_predicted.png,Residuals vs predicted age,
+17,17_bland_altman.png,Bland–Altman agreement plot,Descriptive limits; repeated scans are not independent.
+18,18_calibration_by_age_band.png,Mean predicted vs chronological age by age band,
+19,19_mae_by_age_band.png,Mean absolute error by age band,
+20,20_bias_by_age_band.png,Mean signed error by age band,
+21,21_rmse_by_age_band.png,RMSE by age band,
+22,22_error_by_sex.png,Absolute error by sex,
+23,23_error_by_cdr.png,Absolute error by CDR group,
+24,24_predicted_age_vs_mmse.png,Predicted age vs MMSE score,
+25,25_bag_distribution.png,Brain Age Gap (BAG) distribution,
+26,26_bag_vs_age.png,Brain Age Gap vs chronological age,
+27,27_bag_by_cdr.png,BAG by CDR group,
+28,28_bag_by_sex.png,BAG by sex,
+29,29_ensemble_prediction_uncertainty.png,Distribution of prediction standard deviation,
+30,30_uncertainty_vs_abs_error.png,Prediction uncertainty vs absolute error,
+31,31_error_by_uncertainty_quartile.png,Absolute error by prediction-uncertainty quartile,
+32,32_repeat_bag_run1_vs_run2.png,Repeated-run BAG: run 1 vs run 2,149 repeated-run pairs.
+33,33_repeat_bag_difference.png,Repeated-run BAG difference distribution,
+34,34_repeat_bag_bland_altman.png,Repeat-run BAG agreement (Bland–Altman),
+35,35_repeat_bag_by_cdr.png,Repeated-run BAG difference by CDR,
+36,36_headline_error_metrics.png,V2 reported error metrics,Values copied from final_statistics.json; definition of MAE differs from raw prediction MAE.
+37,37_headline_fit_metrics.png,V2 reported association and classification metrics,Metrics have different interpretations; shown on a common 0–1 scale for display only.
+38,38_prediction_sd_by_age.png,Prediction uncertainty vs chronological age,
+39,39_longitudinal_subject_trajectories.png,Predicted age across scan days for repeated-visit subjects,Exploratory sample of subjects with at least 3 distinct scan days; day/365.25 is an approximate relative-time axis.
+40,40_longitudinal_visit_intervals.png,Time intervals between distinct scan days,Computed from day values in the prediction table.
