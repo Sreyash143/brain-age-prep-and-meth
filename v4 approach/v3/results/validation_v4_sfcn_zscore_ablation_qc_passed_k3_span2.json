@@ -1,0 +1,11 @@
+{
+  "tag": "v4_sfcn_zscore_ablation_qc_passed_k3_span2",
+  "primary_endpoint_rule": "CONTINUOUS primary (<30 events), survival EXPLORATORY",
+  "SE_coefficient_of_variation": 0.2569619493624805,
+  "shrinkage_invariance_note": "Shrunk = mu + r_i*(raw - mu). If SE_S is similar across subjects (CV of SE small), r_i is ~constant, shrunk is an affine copy of raw, and a Cox model/C-index cannot distinguish them (expected paired difference ~0). A shrunk-vs-raw C-index gain is only possible through heterogeneity in SE (different spans / visit counts). Observed CV(SE) = 0.26.",
+  "survival": "fewer than 8 events: Cox models not fitted",
+  "continuous_endpoint": {
+    "CDRSUM": "only 7 subjects with >=2 post-window sessions",
+    "MMSE": "only 7 subjects with >=2 post-window sessions"
+  }
+}

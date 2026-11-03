@@ -1,0 +1,7 @@
+{
+  "bin_min": 38.0,
+  "bin_max": 102.0,
+  "bin_step": 1.0,
+  "sigma": 1.0,
+  "n_bins": 64
+}

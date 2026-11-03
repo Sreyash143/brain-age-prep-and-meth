@@ -1,0 +1,13 @@
+Model,Note,n_parameters,mean_epoch_seconds,total_training_seconds_all_fold_seed,peak_gpu_memory_gb,best_val_MAE,train_val_MAE_gap,MAE_qc_passed,MAE_all_eligible,qc_sensitivity_delta,n_checkpoints_fold_seed
+v3_m1_recomputed,no training metadata found -- run 11_train_experiment.py first,,,,,,,,,,
+v4_sfcn_baseline,,"2,954,496",45.1,20560.5,4.76,2.9,run with --record_train_mae,3.829,6.258,2.429,10.0
+v4_sfcn_baseline_40ep,,"2,954,496",45.1,20560.5,4.76,2.9,run with --record_train_mae,3.79,6.157,2.366,10.0
+v4_sfcn_adam,,"2,954,496",47.5,23723.1,4.76,2.849,run with --record_train_mae,3.782,5.914,2.131,10.0
+v4_sfcn_kl_only,,"2,954,496",45.3,26753.5,4.76,2.888,run with --record_train_mae,3.872,6.067,2.195,10.0
+v4_sfcn_kl_huber,,"2,954,496",45.4,21407.3,4.76,2.896,run with --record_train_mae,3.65,5.771,2.12,10.0
+v4_sfcn_zscore_ablation,,"2,954,496",45.0,23353.9,4.76,2.652,run with --record_train_mae,3.504,5.664,2.16,10.0
+v4_sfcn_gelu,,"2,954,496",45.1,28580.9,4.81,3.319,run with --record_train_mae,4.291,6.652,2.361,10.0
+v4_sfcn_deep_transfer,,"3,618,816",46.4,25513.5,4.77,2.897,run with --record_train_mae,3.781,6.136,2.355,10.0
+v4_resnet18_residual,,"33,192,832",25.6,18040.1,1.59,3.78,run with --record_train_mae,5.239,7.775,2.536,10.0
+v4_resnet34_scratch,,"63,502,464",44.8,32774.1,1.85,3.585,run with --record_train_mae,5.382,7.36,1.978,10.0
+v4_resnet50_scratch,,"46,286,208",81.0,58770.9,2.43,3.643,run with --record_train_mae,5.009,7.488,2.479,10.0

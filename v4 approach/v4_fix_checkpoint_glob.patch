@@ -1,0 +1,35 @@
+--- a/10_eval_canonical.py	2026-10-28 07:59:05.757298644 +0000
++++ b/10_eval_canonical.py	2026-10-28 07:59:05.778024094 +0000
+@@ -43,6 +43,14 @@
+ 
+ # ---------------------------------------------------------------- predict
+ 
++def _ckpts(directory, prefix, fold):
++    """Strict match of '<prefix>_f<fold>_s<seed>.pt'.  The old glob '<prefix>_f<fold>_s*.pt' also matched
++    '<tag>.resume.pt' training-state files written by 11_train_experiment.py, which would be loaded as weights."""
++    import re
++    pat = re.compile(rf"^{re.escape(prefix)}_f{fold}_s\d+\.pt$")
++    return sorted(p for p in directory.iterdir() if pat.match(p.name))
++
++
+ @torch.no_grad()
+ def predict_models(models, df, store, cfg, cv, centers, dev, shifts, bs=4):
+     out = np.zeros((len(models), len(shifts), len(df)), dtype=np.float32)
+@@ -265,7 +273,7 @@
+ 
+     cfg = C4.EXPERIMENTS[args.experiment]
+     eval_one(args.experiment, cfg,
+-             lambda k: sorted(C4.CKPT_DIR.glob(f"{args.experiment}_f{k}_s*.pt")),
++             lambda k: _ckpts(C4.CKPT_DIR, args.experiment, k),
+              bins, man, qc, dev, args)
+ 
+     if args.include_v3:
+@@ -273,7 +281,7 @@
+         # pretrained SFCN with ReLU) -- add them so core_v4.build_model works.
+         v3_cfg = dict(C3.VARIANTS["m1"], arch="sfcn", activation="relu")
+         eval_one("v3_m1_recomputed", v3_cfg,
+-                  lambda k: sorted(C3.CKPT_DIR.glob(f"m1_f{k}_s*.pt")),
++                  lambda k: _ckpts(C3.CKPT_DIR, "m1", k),
+                   bins, man, qc, dev, args)
+ 
+ 

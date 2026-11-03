@@ -1,0 +1,12 @@
+k,min_span,sigma,sigma_value,mean_reliability,frac_exceeding_threshold,n,events,note
+3,0.0,point,0.6697957172632136,0.8828249682944055,0.5,36,2.0,
+3,1.0,point,0.6697957172632136,0.8828249682944055,0.5,36,2.0,
+3,2.0,point,0.6697957172632136,0.883420745559337,0.4857142857142857,35,2.0,
+3,2.0,ci_low,0.6238242891350868,0.898249705526169,0.5428571428571428,35,2.0,
+3,2.0,ci_high,0.7190488289878315,0.8665568509676157,0.45714285714285713,35,2.0,
+4,0.0,point,,,,8,,too few subjects
+4,1.0,point,,,,8,,too few subjects
+4,2.0,point,,,,8,,too few subjects
+5,0.0,point,,,,2,,too few subjects
+5,1.0,point,,,,2,,too few subjects
+5,2.0,point,,,,2,,too few subjects

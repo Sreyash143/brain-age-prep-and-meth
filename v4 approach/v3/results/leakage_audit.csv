@@ -1,0 +1,7 @@
+check,status,detail
+1. every subject belongs to exactly one fold (repeats + later visits included),PASS,
+7. early-stopping subjects never belong to the held-out fold,PASS,(25 checkpoints inspected)
+6. consistency-loss pairs come from training subjects only,PASS,(enforced by assert in 03_train_cv.py: tr.fold != held-out fold)
+2. bias correction fitted on other folds only (cross-fitted),PASS,(5 folds)
+"3/4. slopes, baseline BAG and SE use baseline-window sessions only (post-window BAG scrambled -> unchanged)",PASS,
+8. seeds and software versions logged,PASS,(seed=42; checkpoints tagged variant_fold_seed)

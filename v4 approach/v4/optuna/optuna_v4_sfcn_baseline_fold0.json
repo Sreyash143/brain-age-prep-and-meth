@@ -1,0 +1,487 @@
+{
+  "outer_fold": 0,
+  "n_trials": 30,
+  "trial_epochs": 20,
+  "best_value_val_mae": 2.5893025970458985,
+  "best_params": {
+    "lr_head": 0.00046303985910541907,
+    "lr_backbone": 0.00015193300247791927,
+    "weight_decay": 4.6875645123964775e-05,
+    "dropout": 0.49578546312855487,
+    "l1_weight": 0.17107289382664395,
+    "llrd": 0.8178899697031894,
+    "batch_size": 2,
+    "activation": "relu"
+  },
+  "best_full_config": {
+    "arch": "sfcn",
+    "activation": "relu",
+    "input_mode": "meannorm",
+    "unfreeze": "full",
+    "llrd": 0.8178899697031894,
+    "lr_head": 0.00046303985910541907,
+    "lr_backbone": 0.00015193300247791927,
+    "optimizer": "adamw",
+    "weight_decay": 4.6875645123964775e-05,
+    "dropout": 0.49578546312855487,
+    "loss": "kl_l1",
+    "l1_weight": 0.17107289382664395,
+    "huber_delta": 1.0,
+    "reweight_tail": true,
+    "consistency": 0.0,
+    "batch_size": 2,
+    "description": "Reproduces V3 m1's pretrained SFCN, full fine-tuning, and layer-wise learning-rate decay, but uses V4's extended training schedule and canonical evaluation pipeline."
+  },
+  "all_trials": [
+    {
+      "number": 0,
+      "value": 2.972276124087247,
+      "params": {
+        "lr_head": 0.0004136408372354003,
+        "lr_backbone": 0.00021598900688193294,
+        "weight_decay": 1.4121119851558498e-06,
+        "dropout": 0.5214866702926935,
+        "l1_weight": 0.18535298179725782,
+        "llrd": 0.7061822806698569,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 1,
+      "value": 5.161852125688033,
+      "params": {
+        "lr_head": 0.000740378514878526,
+        "lr_backbone": 1.0852318240739092e-06,
+        "weight_decay": 1.784008151111668e-05,
+        "dropout": 0.41614256128989535,
+        "l1_weight": 0.2081766834455422,
+        "llrd": 0.6815423529075473,
+        "batch_size": 2,
+        "activation": "gelu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 2,
+      "value": 3.8790347298910453,
+      "params": {
+        "lr_head": 0.0004261193771062336,
+        "lr_backbone": 3.9408561406339575e-05,
+        "weight_decay": 1.711768667925799e-05,
+        "dropout": 0.46759225999033294,
+        "l1_weight": 0.21686568675051823,
+        "llrd": 0.6981539309303394,
+        "batch_size": 4,
+        "activation": "gelu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 3,
+      "value": 6.113878089503238,
+      "params": {
+        "lr_head": 1.0486769092418062e-05,
+        "lr_backbone": 3.9769209898975566e-06,
+        "weight_decay": 0.00030184874817774373,
+        "dropout": 0.46224155333912265,
+        "l1_weight": 0.19177138574435584,
+        "llrd": 0.8767497738960764,
+        "batch_size": 8,
+        "activation": "gelu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 4,
+      "value": 3.7422180759663486,
+      "params": {
+        "lr_head": 0.0006160099360135251,
+        "lr_backbone": 2.4145928563905445e-06,
+        "weight_decay": 5.41941987994315e-05,
+        "dropout": 0.3438882141213594,
+        "l1_weight": 0.08074810557809618,
+        "llrd": 0.6222336019051948,
+        "batch_size": 8,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 5,
+      "value": 5.40192001096664,
+      "params": {
+        "lr_head": 0.00010283118459577499,
+        "lr_backbone": 1.0797038292687848e-06,
+        "weight_decay": 1.496411930096805e-05,
+        "dropout": 0.31855846001128835,
+        "l1_weight": 0.29720740818724434,
+        "llrd": 0.7742677414615354,
+        "batch_size": 2,
+        "activation": "gelu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 6,
+      "value": 2.9078373058422193,
+      "params": {
+        "lr_head": 0.00014667024586601044,
+        "lr_backbone": 0.0001294270982448255,
+        "weight_decay": 7.110425494441622e-05,
+        "dropout": 0.35636620372180794,
+        "l1_weight": 0.10620924207262533,
+        "llrd": 0.7045307861127115,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 7,
+      "value": 4.296914388967115,
+      "params": {
+        "lr_head": 5.1408610382698086e-05,
+        "lr_backbone": 8.074268642636264e-05,
+        "weight_decay": 0.0008739507687075929,
+        "dropout": 0.5286710301198834,
+        "l1_weight": 0.019177399855443356,
+        "llrd": 0.699136636139878,
+        "batch_size": 4,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 8,
+      "value": 6.80257058008916,
+      "params": {
+        "lr_head": 0.00011642800323538587,
+        "lr_backbone": 7.954562495838174e-05,
+        "weight_decay": 2.907159095897974e-06,
+        "dropout": 0.4347542924197798,
+        "l1_weight": 0.034358409970264604,
+        "llrd": 0.7394965589621119,
+        "batch_size": 2,
+        "activation": "gelu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 9,
+      "value": 6.603521241614567,
+      "params": {
+        "lr_head": 5.8737603888784936e-05,
+        "lr_backbone": 8.326420084152097e-05,
+        "weight_decay": 1.9898914811610743e-05,
+        "dropout": 0.46433768670610215,
+        "l1_weight": 0.20385965704369466,
+        "llrd": 0.8077827357838245,
+        "batch_size": 8,
+        "activation": "gelu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 10,
+      "value": 2.861587892879139,
+      "params": {
+        "lr_head": 0.0007099017177759261,
+        "lr_backbone": 7.507210333508127e-05,
+        "weight_decay": 0.0003537239466594956,
+        "dropout": 0.3770432383698999,
+        "l1_weight": 0.13044809920207634,
+        "llrd": 0.8555728925607966,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 11,
+      "value": 3.2053597299676193,
+      "params": {
+        "lr_head": 0.0009090213735226623,
+        "lr_backbone": 7.041989118358723e-05,
+        "weight_decay": 0.0002561670278658997,
+        "dropout": 0.3841873012368732,
+        "l1_weight": 0.10897768539283036,
+        "llrd": 0.8806806247275297,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 12,
+      "value": 3.0457480351130166,
+      "params": {
+        "lr_head": 0.00027050024337037714,
+        "lr_backbone": 0.00010231867458201337,
+        "weight_decay": 0.0002202445599882575,
+        "dropout": 0.2590727297094021,
+        "l1_weight": 0.11840667697546785,
+        "llrd": 0.7319713269740725,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 13,
+      "value": 3.179158381411904,
+      "params": {
+        "lr_head": 0.0006295864800981781,
+        "lr_backbone": 9.418609718226417e-05,
+        "weight_decay": 0.0005481313927393404,
+        "dropout": 0.4719463008087897,
+        "l1_weight": 0.1677088893139355,
+        "llrd": 0.5911653488833262,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 14,
+      "value": 3.057605847068455,
+      "params": {
+        "lr_head": 0.00026199683978926256,
+        "lr_backbone": 0.0001664099651956896,
+        "weight_decay": 5.108472749533434e-05,
+        "dropout": 0.3584004231620262,
+        "l1_weight": 0.04729376360344468,
+        "llrd": 0.8682305440892016,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 15,
+      "value": 4.5767019483778215,
+      "params": {
+        "lr_head": 0.0002047605900685633,
+        "lr_backbone": 6.8044065471675e-05,
+        "weight_decay": 3.483214964303118e-05,
+        "dropout": 0.2995482857337556,
+        "l1_weight": 0.04597707628137288,
+        "llrd": 0.5479802518167434,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 16,
+      "value": 4.082450340534079,
+      "params": {
+        "lr_head": 0.00011659874361259011,
+        "lr_backbone": 0.00017795028271934052,
+        "weight_decay": 0.0002517173924274671,
+        "dropout": 0.36654282499462726,
+        "l1_weight": 0.166880283855691,
+        "llrd": 0.8063972430634474,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 17,
+      "value": 2.5893025970458985,
+      "params": {
+        "lr_head": 0.00046303985910541907,
+        "lr_backbone": 0.00015193300247791927,
+        "weight_decay": 4.6875645123964775e-05,
+        "dropout": 0.49578546312855487,
+        "l1_weight": 0.17107289382664395,
+        "llrd": 0.8178899697031894,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 18,
+      "value": 3.058520271178873,
+      "params": {
+        "lr_head": 0.0007190709788851592,
+        "lr_backbone": 0.00022239780297568537,
+        "weight_decay": 0.0004775863431808969,
+        "dropout": 0.48584391933562665,
+        "l1_weight": 0.2561903091834788,
+        "llrd": 0.8290061339359494,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 19,
+      "value": 3.858473783039915,
+      "params": {
+        "lr_head": 0.0008610080410687763,
+        "lr_backbone": 1.2049845059863373e-05,
+        "weight_decay": 1.62241790666933e-05,
+        "dropout": 0.37983760102039227,
+        "l1_weight": 0.17841527086669304,
+        "llrd": 0.8778180180359788,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 20,
+      "value": 3.3214812327906027,
+      "params": {
+        "lr_head": 0.0009852783081985871,
+        "lr_backbone": 0.00010687642450860298,
+        "weight_decay": 0.00026832052157541584,
+        "dropout": 0.3558510909056033,
+        "l1_weight": 0.20878210179602052,
+        "llrd": 0.8268929084697147,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 21,
+      "value": 2.9731216196633556,
+      "params": {
+        "lr_head": 0.00031610354138325933,
+        "lr_backbone": 7.482319258383436e-05,
+        "weight_decay": 0.0006308973400333651,
+        "dropout": 0.4185388518217781,
+        "l1_weight": 0.08954451567293631,
+        "llrd": 0.7879983084100396,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 22,
+      "value": 2.630175315009223,
+      "params": {
+        "lr_head": 0.0006599741160462936,
+        "lr_backbone": 3.8610267974692605e-05,
+        "weight_decay": 0.0003149788689189318,
+        "dropout": 0.579428393242748,
+        "l1_weight": 0.10877284954432853,
+        "llrd": 0.8478108401637212,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 23,
+      "value": 2.8731123833429244,
+      "params": {
+        "lr_head": 0.0008453830232382492,
+        "lr_backbone": 0.0001442245521644755,
+        "weight_decay": 0.0002464818920258478,
+        "dropout": 0.31463648023748725,
+        "l1_weight": 0.10815347568469365,
+        "llrd": 0.7824850903800549,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 24,
+      "value": 3.2957709142766847,
+      "params": {
+        "lr_head": 0.0005939882848664277,
+        "lr_backbone": 5.267247261606023e-05,
+        "weight_decay": 0.00015433835147332675,
+        "dropout": 0.4156454240103341,
+        "l1_weight": 0.1854207005286096,
+        "llrd": 0.7915369382686628,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 25,
+      "value": 4.04403575016902,
+      "params": {
+        "lr_head": 0.000254342929821288,
+        "lr_backbone": 9.446309642692793e-05,
+        "weight_decay": 8.772061123444485e-05,
+        "dropout": 0.5010862735081208,
+        "l1_weight": 0.08893658442112932,
+        "llrd": 0.7933823052696941,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 26,
+      "value": 2.9119162777353664,
+      "params": {
+        "lr_head": 0.0008157467669665713,
+        "lr_backbone": 3.0677506555448125e-05,
+        "weight_decay": 0.0005008245294724921,
+        "dropout": 0.4193853052793458,
+        "l1_weight": 0.13432375815719633,
+        "llrd": 0.8446890025461248,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 27,
+      "value": 3.5140494021623496,
+      "params": {
+        "lr_head": 0.0008217503219666571,
+        "lr_backbone": 1.409538743453135e-05,
+        "weight_decay": 0.00023582123994837504,
+        "dropout": 0.5884012941897815,
+        "l1_weight": 0.13730779014357045,
+        "llrd": 0.8996694503499976,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 28,
+      "value": 4.134430538524281,
+      "params": {
+        "lr_head": 0.0009029230538435982,
+        "lr_backbone": 0.00018280491264320413,
+        "weight_decay": 0.0001035734957083313,
+        "dropout": 0.5866935822045012,
+        "l1_weight": 0.1013313012492578,
+        "llrd": 0.8002590433243764,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.PRUNED"
+    },
+    {
+      "number": 29,
+      "value": 2.8954374962246296,
+      "params": {
+        "lr_head": 0.0005349008156610278,
+        "lr_backbone": 5.988683543052483e-05,
+        "weight_decay": 0.000747538655164599,
+        "dropout": 0.5736355613484304,
+        "l1_weight": 0.07065124342873641,
+        "llrd": 0.8407120596566202,
+        "batch_size": 2,
+        "activation": "relu"
+      },
+      "state": "TrialState.COMPLETE"
+    }
+  ]
+}

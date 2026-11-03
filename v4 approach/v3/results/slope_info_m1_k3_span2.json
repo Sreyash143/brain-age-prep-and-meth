@@ -1,0 +1,22 @@
+{
+  "tau2": 0.21906133349303455,
+  "tau": 0.4680398845109619,
+  "mu": 0.12864040529496115,
+  "mean_reliability": 0.883420745559337,
+  "median_SE": 0.1549276946339639,
+  "median_abs_slope": 0.3746613767514711,
+  "frac_exceeding_threshold": 0.4857142857142857,
+  "n": 35,
+  "corr_raw_shrunk": 0.9985990928824158,
+  "k": 3,
+  "min_span": 2.0,
+  "sigma": 0.6697957172632136,
+  "n_events": 2,
+  "median_window_span": 5.292265571526352,
+  "n_subjects_before_span_rule": 36,
+  "reliability_flag": "adequate (>=0.5)",
+  "SE_larger_than_abs_slope": false,
+  "mixedlm_residual_SD_free": 1.1428912478137547,
+  "mixedlm_slope_SD_free": 0.5804474010962054,
+  "residual_SD_free_over_sigma_SEM": 1.7063280913225456
+}

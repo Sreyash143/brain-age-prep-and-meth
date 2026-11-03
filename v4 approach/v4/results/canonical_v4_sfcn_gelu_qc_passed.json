@@ -1,0 +1,141 @@
+{
+  "population": "qc_passed",
+  "n_CN_scans": 1896,
+  "n_CN_subjects": 767,
+  "MAE": 4.290766296869592,
+  "MAE_CI95_bootstrap": [
+    4.0419980687712656,
+    4.541038244433833
+  ],
+  "RMSE": 5.415556662433121,
+  "pearson_r": 0.8581701077137684,
+  "R2": 0.6410151736336223,
+  "raw_MAE_uncorrected": 3.6221105261694024,
+  "mean_BAG": 0.0023716953132724506,
+  "BAG_vs_age_slope": 0.001574517474051932,
+  "BAG_vs_age_p": 0.908958944814901,
+  "frac_abs_BAG_gt10": 0.07120253164556962,
+  "age_group_acc_3class": 0.7505274261603375,
+  "age_group_acc_CI95": [
+    0.7252207068579665,
+    0.7737988765147427
+  ],
+  "fold_wise": [
+    {
+      "fold": 0,
+      "n": 369,
+      "MAE": 4.069551713318036,
+      "RMSE": 5.161051085708738
+    },
+    {
+      "fold": 1,
+      "n": 416,
+      "MAE": 5.394531365908108,
+      "RMSE": 6.521893617034197
+    },
+    {
+      "fold": 2,
+      "n": 360,
+      "MAE": 4.3857778680589465,
+      "RMSE": 5.609846873525874
+    },
+    {
+      "fold": 3,
+      "n": 379,
+      "MAE": 3.972880161255205,
+      "RMSE": 4.858823311863364
+    },
+    {
+      "fold": 4,
+      "n": 372,
+      "MAE": 3.5078001473539615,
+      "RMSE": 4.580841461535356
+    }
+  ],
+  "MAE_mean_across_folds": 4.266108251178851,
+  "MAE_sd_across_folds": 0.6304455422448644,
+  "MAE_CI_NOTE": "MAE_CI95_bootstrap above is the pooled subject-cluster bootstrap CI -- use THIS for inference. MAE_sd_across_folds is descriptive spread only, per v4_approach.txt/Table A: do not substitute fold-SD for a CI.",
+  "age_bands": [
+    {
+      "band": "0-60",
+      "n": 306,
+      "MAE": 4.351193725486207,
+      "mean_BAG": 0.4022461102055566
+    },
+    {
+      "band": "60-70",
+      "n": 657,
+      "MAE": 4.402999585992125,
+      "mean_BAG": -0.9084073695817131
+    },
+    {
+      "band": "70-80",
+      "n": 704,
+      "MAE": 4.2691785556619815,
+      "mean_BAG": 0.8146216917037961
+    },
+    {
+      "band": "80-120",
+      "n": 229,
+      "MAE": 3.9543894658650895,
+      "mean_BAG": -0.41598517272149615
+    }
+  ],
+  "sigma_SEM": 0.7025017218887372,
+  "MDC95": 1.9472354268635883,
+  "ICC_A1": 0.9838312536279381,
+  "n_repeat_sessions": 535,
+  "uncertainty_calibration": {
+    "n": 535,
+    "spearman_rho": 0.12352583924857492,
+    "p": 0.00421715641825643
+  },
+  "BAG_by_CDR": [
+    {
+      "CDRTOT": 0.5,
+      "count": 393,
+      "mean": 3.654,
+      "std": 6.155
+    },
+    {
+      "CDRTOT": 1.0,
+      "count": 122,
+      "mean": 6.373,
+      "std": 7.367
+    },
+    {
+      "CDRTOT": 2.0,
+      "count": 2,
+      "mean": 15.506,
+      "std": 4.951
+    }
+  ],
+  "tag": "v4_sfcn_gelu",
+  "bias_params_per_fold": {
+    "0": {
+      "slope": 0.7176602511281875,
+      "intercept": 19.664699569417465,
+      "n_sessions": 1086
+    },
+    "1": {
+      "slope": 0.7035737381951415,
+      "intercept": 20.750965102863432,
+      "n_sessions": 1057
+    },
+    "2": {
+      "slope": 0.7101783876128319,
+      "intercept": 20.252649863054437,
+      "n_sessions": 1088
+    },
+    "3": {
+      "slope": 0.7291492973042912,
+      "intercept": 19.150366999244547,
+      "n_sessions": 1084
+    },
+    "4": {
+      "slope": 0.7519680692743697,
+      "intercept": 17.421536917623826,
+      "n_sessions": 1089
+    }
+  }
+}

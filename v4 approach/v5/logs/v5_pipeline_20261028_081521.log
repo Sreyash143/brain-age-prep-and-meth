@@ -1,0 +1,19 @@
+
+================================================================
+[2026-10-28 08:15:21] V5 pipeline starting
+================================================================
+Project: /mnt/d/brain age prep and meth/v4 approach
+Log:     /mnt/d/brain age prep and meth/v4 approach/v5/logs/v5_pipeline_20261028_081521.log
+RUN_TRAIN=0 | RUN_OPTUNA=0
+Python: /mnt/d/brain age prep and meth/wsl_env_312/bin/python
+Python 3.12.14
+[INFO] No Git repository detected; continuing.
+
+================================================================
+[2026-10-28 08:15:22] 1/4: Unit tests
+================================================================
+/mnt/d/brain age prep and meth/wsl_env_312/bin/python: No module named pytest
+
+[ERROR] Pipeline failed with exit code 1 at line 99.
+[INFO] Log: /mnt/d/brain age prep and meth/v4 approach/v5/logs/v5_pipeline_20261028_081521.log
+[INFO] Fix the reported issue, then rerun the script. Completed stages are not automatically repeated by this script.

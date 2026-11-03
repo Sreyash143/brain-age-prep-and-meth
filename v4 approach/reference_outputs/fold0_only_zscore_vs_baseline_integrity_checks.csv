@@ -1,0 +1,14 @@
+tag,check,status,detail
+v4_sfcn_baseline,required columns present,PASS,missing=[]
+v4_sfcn_baseline,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_baseline,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_baseline,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_baseline,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_baseline,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_zscore_ablation,required columns present,PASS,missing=[]
+v4_sfcn_zscore_ablation,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_zscore_ablation,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_zscore_ablation,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_zscore_ablation,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_zscore_ablation,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+ALL,identical scan set across all tags (comparable cohorts),PASS,

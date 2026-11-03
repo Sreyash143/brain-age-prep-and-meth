@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch checkpoints and large model weights
+*.pt
+*.pth
+*.ckpt
+*.bin
+**/checkpoints/
+**/checkpoints_backup_*/
+
+# Testing & Caches
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS / Editor generated
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

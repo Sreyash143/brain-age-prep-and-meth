@@ -1,0 +1,74 @@
+tag,check,status,detail
+v4_sfcn_zscore_ablation,required columns present,PASS,missing=[]
+v4_sfcn_zscore_ablation,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_zscore_ablation,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_zscore_ablation,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_zscore_ablation,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_zscore_ablation,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_baseline,required columns present,PASS,missing=[]
+v4_sfcn_baseline,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_baseline,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_baseline,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_baseline,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_baseline,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_baseline_40ep,required columns present,PASS,missing=[]
+v4_sfcn_baseline_40ep,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_baseline_40ep,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_baseline_40ep,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_baseline_40ep,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_baseline_40ep,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_adam,required columns present,PASS,missing=[]
+v4_sfcn_adam,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_adam,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_adam,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_adam,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_adam,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_kl_only,required columns present,PASS,missing=[]
+v4_sfcn_kl_only,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_kl_only,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_kl_only,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_kl_only,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_kl_only,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_kl_huber,required columns present,PASS,missing=[]
+v4_sfcn_kl_huber,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_kl_huber,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_kl_huber,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_kl_huber,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_kl_huber,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_gelu,required columns present,PASS,missing=[]
+v4_sfcn_gelu,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_gelu,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_gelu,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_gelu,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_gelu,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_sfcn_deep_transfer,required columns present,PASS,missing=[]
+v4_sfcn_deep_transfer,file_path is unique (one row per scan),PASS,duplicates=0
+v4_sfcn_deep_transfer,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_sfcn_deep_transfer,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_sfcn_deep_transfer,no NaN age / prediction among CN scans,PASS,
+v4_sfcn_deep_transfer,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_resnet18_residual,required columns present,PASS,missing=[]
+v4_resnet18_residual,file_path is unique (one row per scan),PASS,duplicates=0
+v4_resnet18_residual,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_resnet18_residual,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_resnet18_residual,no NaN age / prediction among CN scans,PASS,
+v4_resnet18_residual,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_resnet34_scratch,required columns present,PASS,missing=[]
+v4_resnet34_scratch,file_path is unique (one row per scan),PASS,duplicates=0
+v4_resnet34_scratch,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_resnet34_scratch,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_resnet34_scratch,no NaN age / prediction among CN scans,PASS,
+v4_resnet34_scratch,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v4_resnet50_scratch,required columns present,PASS,missing=[]
+v4_resnet50_scratch,file_path is unique (one row per scan),PASS,duplicates=0
+v4_resnet50_scratch,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v4_resnet50_scratch,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v4_resnet50_scratch,no NaN age / prediction among CN scans,PASS,
+v4_resnet50_scratch,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+v3_m1_recomputed,required columns present,PASS,missing=[]
+v3_m1_recomputed,file_path is unique (one row per scan),PASS,duplicates=0
+v3_m1_recomputed,every subject belongs to exactly one fold (no repeat-scan leakage),PASS,
+v3_m1_recomputed,folds 0..4 all present,PASS,"folds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]"
+v3_m1_recomputed,no NaN age / prediction among CN scans,PASS,
+v3_m1_recomputed,"(subject,day,run) key collisions [informational]",WARN,2 colliding rows; file_path is used as the scan key here
+ALL,identical scan set across all tags (comparable cohorts),PASS,
