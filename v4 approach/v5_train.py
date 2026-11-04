@@ -72,6 +72,12 @@ def git_commit():
         return "not-a-git-repo"
 
 
+def cfg_hash(cfg):
+    import hashlib
+    return hashlib.sha1(json.dumps({k: v for k, v in cfg.items() if k != "description"}, sort_keys=True,
+                                   default=str).encode()).hexdigest()[:12]
+
+
 REGISTRY_FIELDS = ["tag", "experiment", "status", "failure_reason", "git_commit", "arch", "init_checkpoint",
                    "input_mode", "loss", "hyperparameters_json", "fold", "seed", "best_val_epoch",
                    "best_val_mae_raw", "best_val_epoch_ema", "best_val_mae_ema", "epochs_run",
@@ -101,19 +107,325 @@ def load_manifest_for_training():
     return man[~man.qc_bad].copy()
 
 
-def make_loaders(cfg, tr, va, store, workers, dev):
-    pin = dev.type == "cuda"
-    train_ds, val_ds = K.ScanDS(store, tr), K.ScanDS(store, va)
-    if cfg.get("reweight_tail"):
-        sampler = WeightedRandomSampler(K.tail_weights(tr.age.values), num_samples=len(tr), replacement=True)
-        tl = DataLoader(train_ds, batch_size=cfg["batch_size"], sampler=sampler, num_workers=workers,
-                        pin_memory=pin, drop_last=False)
-    else:
-        tl = DataLoader(train_ds, batch_size=cfg["batch_size"], shuffle=True, num_workers=workers,
-                        pin_memory=pin, drop_last=False)
-    vl = DataLoader(val_ds, batch_size=cfg["batch_size"], shuffle=False, num_workers=workers, pin_memory=pin)
-    return tl, vl
+def subject_balanced_weights(subject_ids):
+    """Per-scan sampling weight w_ij = 1/n_i (n_i = number of TRAINING scans of subject i), normalised to mean 1.
+    Every training subject then has the same expected number of draws per epoch regardless of how many
+    scans/sessions they have.  Computed from the training split only (callers pass tr.subject_id)."""
+    ids = pd.Series(np.asarray(subject_ids))
+    if ids.empty:
+        raise ValueError("subject_balanced_weights: empty training split")
+    n = ids.map(ids.value_counts()).to_numpy(dtype=float)
+    w = 1.0 / n
+    return w / w.mean()
 
+def age_balanced_weights(
+    ages,
+    bin_width=5,
+    exponent=0.25,
+    min_weight=0.5,
+    max_weight=2.0,
+):
+    """
+    Mild inverse-frequency age-bin sampling.
+
+    Weights are calculated exclusively from the training split.
+
+    Each scan receives the weight of its age bin:
+
+        raw_weight = (N / (B * n_bin)) ** exponent
+
+    where:
+        N     = number of training scans
+        B     = number of non-empty age bins
+        n_bin = number of training scans in the age bin
+
+    Weights are clipped and normalized to mean 1.
+
+    Returns:
+        weights: per-scan sampling weights
+        diagnostics: age-bin sampling statistics
+    """
+
+    ages = np.asarray(ages, dtype=float)
+
+    if len(ages) == 0:
+        raise ValueError("age_balanced_weights: empty training split")
+
+    if not np.isfinite(ages).all():
+        raise ValueError("age_balanced_weights: non-finite ages found")
+
+    if bin_width <= 0:
+        raise ValueError("bin_width must be positive")
+
+    if exponent < 0:
+        raise ValueError("exponent must be non-negative")
+
+    if min_weight <= 0 or max_weight < min_weight:
+        raise ValueError("Invalid sampling weight limits")
+
+    # Fixed-width bins aligned to multiples of bin_width.
+    bin_ids = np.floor(ages / bin_width).astype(int)
+
+    unique_bins, inverse, counts = np.unique(
+        bin_ids,
+        return_inverse=True,
+        return_counts=True,
+    )
+
+    n = len(ages)
+    n_bins = len(unique_bins)
+
+    # Mild inverse-frequency weighting.
+    raw_bin_weights = (
+        n / (n_bins * counts.astype(float))
+    ) ** exponent
+
+    # Keep FINAL weights within [min_weight, max_weight] and make
+    # their scan-level mean equal to 1 using a common scale factor.
+    if not (min_weight <= 1.0 <= max_weight):
+        raise ValueError("Weight limits must contain 1.0")
+
+    # Find a common scale factor such that the FINAL per-scan weights
+    # have mean 1 while remaining inside the configured bounds.
+    # The mean over bins must be weighted by each bin's scan count.
+    if not (min_weight <= 1.0 <= max_weight):
+        raise ValueError("Weight limits must contain 1.0")
+
+    def scan_weighted_mean(bin_weights):
+        return float(np.average(bin_weights, weights=counts))
+
+    low, high = 0.0, 1.0
+
+    # Find an upper bracket for the target mean.
+    while scan_weighted_mean(
+        np.clip(raw_bin_weights * high, min_weight, max_weight)
+    ) < 1.0:
+        high *= 2.0
+        if not np.isfinite(high):
+            raise RuntimeError("Could not bracket mean-1 age sampling weights")
+
+    # Bisection over the common scale factor.
+    for _ in range(100):
+        mid = (low + high) / 2.0
+        candidate = np.clip(
+            raw_bin_weights * mid,
+            min_weight,
+            max_weight,
+        )
+
+        if scan_weighted_mean(candidate) < 1.0:
+            low = mid
+        else:
+            high = mid
+
+    final_scale = (low + high) / 2.0
+    clipped_bin_weights = np.clip(
+        raw_bin_weights * final_scale,
+        min_weight,
+        max_weight,
+    )
+
+    # Expand bin weights back to one weight per training scan.
+    weights = clipped_bin_weights[inverse].astype(np.float64)
+
+    if not np.isfinite(weights).all():
+        raise ValueError("Non-finite age sampling weights")
+    if (weights <= 0).any():
+        raise ValueError("Non-positive age sampling weights")
+
+    mean_weight = float(weights.mean())
+    if abs(mean_weight - 1.0) > 1e-6:
+        raise RuntimeError(
+            f"Age sampling weights failed mean-1 constraint: {mean_weight:.10f}"
+        )
+
+    if weights.min() < min_weight - 1e-8:
+        raise RuntimeError("Final age sampling weights are below configured minimum")
+    if weights.max() > max_weight + 1e-8:
+        raise RuntimeError("Final age sampling weights exceed configured maximum")
+
+    # Sampling probabilities after normalization.
+    total_weight = weights.sum()
+
+    diagnostics = []
+
+    for j, bin_id in enumerate(unique_bins):
+
+        mask = inverse == j
+
+        bin_weight = weights[mask][0]
+
+        probability = weights[mask].sum() / total_weight
+
+        diagnostics.append({
+            "age_bin": (
+                int(bin_id * bin_width),
+                int((bin_id + 1) * bin_width),
+            ),
+            "n_scans": int(counts[j]),
+            "normalized_weight": float(bin_weight),
+            "sampling_probability": float(probability),
+            "expected_draws_per_epoch": float(
+                n * probability
+            ),
+        })
+
+    return weights.astype(np.float64), diagnostics
+
+def check_sampling_cfg(cfg):
+
+    active = [
+        key
+        for key in (
+            "subject_balanced",
+            "reweight_tail",
+            "age_balanced",
+        )
+        if cfg.get(key, False)
+    ]
+
+    if len(active) > 1:
+        raise ValueError(
+            "Only one sampling strategy can be active. "
+            f"Conflicting strategies: {active}"
+        )
+
+def make_loaders(cfg, tr, va, store, workers, dev):
+
+    pin = dev.type == "cuda"
+
+    check_sampling_cfg(cfg)
+
+    train_ds = K.ScanDS(store, tr)
+    val_ds = K.ScanDS(store, va)
+
+    sampler = None
+
+    # --------------------------------------------------------
+    # V5.2: subject-balanced sampling
+    # --------------------------------------------------------
+
+    if cfg.get("subject_balanced"):
+
+        weights = subject_balanced_weights(
+            tr.subject_id.values
+        )
+
+        sampler = WeightedRandomSampler(
+            weights=torch.as_tensor(weights, dtype=torch.double),
+            num_samples=len(tr),
+            replacement=True,
+        )
+
+    # --------------------------------------------------------
+    # V5.3: mild age-balanced sampling
+    # --------------------------------------------------------
+
+    elif cfg.get("age_balanced"):
+
+        weights, diagnostics = age_balanced_weights(
+            tr.age.values,
+            bin_width=cfg.get("age_balance_bin_width", 5),
+            exponent=cfg.get("age_balance_exponent", 0.25),
+            min_weight=cfg.get("age_balance_min_weight", 0.5),
+            max_weight=cfg.get("age_balance_max_weight", 2.0),
+        )
+
+        print("\n[V5.3 AGE SAMPLING DIAGNOSTICS]")
+        print(
+            f"Training scans: {len(tr)} | "
+            f"Training subjects: {tr.subject_id.nunique()}"
+        )
+
+        print(
+            f"Bin width: {cfg.get('age_balance_bin_width', 5)} years | "
+            f"Exponent: {cfg.get('age_balance_exponent', 0.25)}"
+        )
+
+        print(
+            f"Weight limits: "
+            f"{cfg.get('age_balance_min_weight', 0.5)} - "
+            f"{cfg.get('age_balance_max_weight', 2.0)}"
+        )
+
+        print(
+            "\nAge bin       Scans    Weight    Draw probability    Expected draws"
+        )
+
+        for item in diagnostics:
+
+            lo, hi = item["age_bin"]
+
+            print(
+                f"{lo:3d}-{hi:<3d} "
+                f"{item['n_scans']:8d} "
+                f"{item['normalized_weight']:9.3f} "
+                f"{item['sampling_probability']:17.4f} "
+                f"{item['expected_draws_per_epoch']:16.1f}"
+            )
+
+        print(
+            f"\nWeight range: {weights.min():.3f} - "
+            f"{weights.max():.3f}"
+        )
+
+        print(f"Mean weight: {weights.mean():.6f}")
+
+        sampler = WeightedRandomSampler(
+            weights=torch.as_tensor(weights, dtype=torch.double),
+            num_samples=len(tr),
+            replacement=True,
+        )
+
+    # --------------------------------------------------------
+    # Existing V5 tail reweighting
+    # --------------------------------------------------------
+
+    elif cfg.get("reweight_tail"):
+
+        weights = K.tail_weights(tr.age.values)
+
+        sampler = WeightedRandomSampler(
+            weights=torch.as_tensor(weights, dtype=torch.double),
+            num_samples=len(tr),
+            replacement=True,
+        )
+
+    # --------------------------------------------------------
+    # Default: ordinary shuffle
+    # --------------------------------------------------------
+
+    if sampler is not None:
+
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=cfg["batch_size"],
+            sampler=sampler,
+            num_workers=workers,
+            pin_memory=pin,
+            drop_last=False,
+        )
+
+    else:
+
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=cfg["batch_size"],
+            shuffle=True,
+            num_workers=workers,
+            pin_memory=pin,
+            drop_last=False,
+        )
+
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=cfg["batch_size"],
+        shuffle=False,
+        num_workers=workers,
+        pin_memory=pin,
+    )
+
+    return train_loader, val_loader
 
 # ------------------------------------------------------------------ one training run
 def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience, workers, cv,
@@ -161,6 +473,9 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
     if save and not force and resume_ckpt.exists():
         st = T._load_torch(resume_ckpt, dev)
         if isinstance(st, dict) and st.get("checkpoint_kind") == "v5_training_resume":
+            if st.get("cfg_hash") not in (None, cfg_hash(cfg)):
+                raise RuntimeError(f"{resume_ckpt} was written with a different config; refusing to resume "
+                                   f"(use --force to restart, or a new --name)")
             model.load_state_dict(st["model_state_dict"])
             opt.load_state_dict(st["optimizer_state_dict"])
             sched.load_state_dict(st["scheduler_state_dict"])
@@ -228,7 +543,7 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
                   + f" | lr {opt.param_groups[0]['lr']:.2e} | {time.time() - t0:.0f}s")
             if save:
                 T._atomic_torch_save(dict(
-                    checkpoint_kind="v5_training_resume", tag=tag, next_epoch=ep + 1, best_val_mae=best,
+                    checkpoint_kind="v5_training_resume", tag=tag, cfg_hash=cfg_hash(cfg), next_epoch=ep + 1, best_val_mae=best,
                     best_epoch=best_ep, best_val_mae_ema=best_e, best_epoch_ema=best_e_ep, bad_epochs=bad,
                     step=step, history=hist, model_state_dict=model.state_dict(),
                     optimizer_state_dict=opt.state_dict(), scheduler_state_dict=sched.state_dict(),
@@ -242,7 +557,7 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
         print(f"\n[INTERRUPTED] {tag}: latest completed epoch checkpoint preserved.")
         raise
 
-    except Exception as e:
+    except BaseException as e:                                # incl. SystemExit (SIGTERM); never log such a run as "completed"
         status, reason = "failed", f"{type(e).__name__}: {e}"
         traceback.print_exc()
         raise
@@ -323,6 +638,51 @@ def main():
             assert not (set(tr.subject_id) & set(va.subject_id)) and (tr.fold != f).all() and (va.fold != f).all()
             print(f"fold {f}: train {len(tr)} scans/{tr.subject_id.nunique()} subj | val {len(va)}/{va.subject_id.nunique()} | "
                   f"held-out CN {int(((man.fold == f) & (man.CDRTOT == 0)).sum())} -- subject-disjoint OK")
+            check_sampling_cfg(cfg)
+            if cfg.get("subject_balanced"):
+                w = subject_balanced_weights(tr.subject_id.values)
+                per_subj = pd.Series(w).groupby(tr.subject_id.values).sum()
+                assert np.allclose(per_subj / per_subj.sum(), 1.0 / len(per_subj)), "subjects not equally weighted"
+                assert abs(w.mean() - 1.0) < 1e-9
+                n_scans = tr.groupby("subject_id").size()
+                print(f"   subject-balanced sampling: {len(per_subj)} subjects, scans/subject min {n_scans.min()} "
+                      f"median {int(n_scans.median())} max {n_scans.max()}; per-subject draw prob = {1/len(per_subj):.5f} "
+                      f"(max/min subject prob ratio {per_subj.max()/per_subj.min():.6f}); "
+                      f"scan weight range {w.min():.3f}-{w.max():.3f}; sampler draws/epoch = {len(tr)}")
+
+            elif cfg.get("age_balanced"):
+                w, diagnostics = age_balanced_weights(
+                    tr.age.values,
+                    bin_width=cfg.get("age_balance_bin_width", 5),
+                    exponent=cfg.get("age_balance_exponent", 0.25),
+                    min_weight=cfg.get("age_balance_min_weight", 0.5),
+                    max_weight=cfg.get("age_balance_max_weight", 2.0),
+                )
+
+                assert np.isfinite(w).all(), "Age weights contain non-finite values"
+                assert (w > 0).all(), "Age weights must be positive"
+                assert abs(float(w.mean()) - 1.0) < 1e-6, "Age weights must have mean 1"
+                assert w.min() >= cfg.get("age_balance_min_weight", 0.5) - 1e-8
+                assert w.max() <= cfg.get("age_balance_max_weight", 2.0) + 1e-8
+
+                print("   V5.3 age-balanced sampling:")
+                print("   Age bin       Scans    Weight    Draw probability    Expected draws")
+
+                for item in diagnostics:
+                    lo, hi = item["age_bin"]
+                    print(
+                        f"   {lo:3d}-{hi:<3d} "
+                        f"{item['n_scans']:8d} "
+                        f"{item['normalized_weight']:9.3f} "
+                        f"{item['sampling_probability']:17.4f} "
+                        f"{item['expected_draws_per_epoch']:16.1f}"
+                    )
+
+                print(
+                    f"   Weight range: {w.min():.3f}-{w.max():.3f} "
+                    f"| Mean: {w.mean():.3f} "
+                    f"| Sampler draws/epoch: {len(tr)}"
+                )
         return
 
     store = K.ScanStore()

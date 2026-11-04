@@ -1,0 +1,127 @@
+diff --git a/config_v5.py b/config_v5.py
+index 4ee18aa..eb72b45 100644
+--- a/config_v5.py
++++ b/config_v5.py
+@@ -45,6 +45,13 @@ EXPERIMENTS = {
+         loss="kl_huber", l1_weight=0.0, huber_delta=1.0, ema_decay=0.999,
+         description="v4_sfcn_zscore_ablation with the L1 term replaced by Huber(delta=1) "
+                     "(v4_sfcn_kl_huber's change). EMA(0.999) of weights tracked in the same run.",
++    ),
++        # V5.2.  Same as V5.1 (tail reweighting OFF, run as --name v5_1_no_tail --set reweight_tail=false) PLUS
++    # subject-balanced sampling: scan weight 1/n_i from the TRAINING split only.  One factor vs V5.1.
++    "v5_2_subject_balanced": derive(
++        loss="kl_huber", l1_weight=0.0, huber_delta=1.0, ema_decay=0.999,
++        reweight_tail=False, subject_balanced=True,
++        description="V5.1 (no tail reweighting) + subject-balanced WeightedRandomSampler (w=1/n_scans_of_subject).",
+     ),
+     # Optional controls, only needed if the paper must attribute the effect to one factor.
+     "v5_z_ctl_ema": derive(
+diff --git a/v5_optuna.py b/v5_optuna.py
+index e107508..005807b 100644
+--- a/v5_optuna.py
++++ b/v5_optuna.py
+@@ -58,6 +58,7 @@ def make_objective(base_cfg, outer_fold, man, store, bins, dev, args, build_mode
+ 
+ 
+ def run_study(base_cfg, outer_fold, man, store, bins, dev, args, build_model_fn=None):
++    C5.OPTUNA_DIR.mkdir(parents=True, exist_ok=True)       # config_v5 only creates it at import time (cwd-dependent)
+     pruner = optuna.pruners.HyperbandPruner() if args.prune else optuna.pruners.NopPruner()
+     study = optuna.create_study(
+         study_name=f"{args.experiment}_outer{outer_fold}", direction="minimize",
+diff --git a/v5_train.py b/v5_train.py
+index ae34a54..1de82fb 100644
+--- a/v5_train.py
++++ b/v5_train.py
+@@ -72,6 +72,12 @@ def git_commit():
+         return "not-a-git-repo"
+ 
+ 
++def cfg_hash(cfg):
++    import hashlib
++    return hashlib.sha1(json.dumps({k: v for k, v in cfg.items() if k != "description"}, sort_keys=True,
++                                   default=str).encode()).hexdigest()[:12]
++
++
+ REGISTRY_FIELDS = ["tag", "experiment", "status", "failure_reason", "git_commit", "arch", "init_checkpoint",
+                    "input_mode", "loss", "hyperparameters_json", "fold", "seed", "best_val_epoch",
+                    "best_val_mae_raw", "best_val_epoch_ema", "best_val_mae_ema", "epochs_run",
+@@ -101,10 +107,32 @@ def load_manifest_for_training():
+     return man[~man.qc_bad].copy()
+ 
+ 
++def subject_balanced_weights(subject_ids):
++    """Per-scan sampling weight w_ij = 1/n_i (n_i = number of TRAINING scans of subject i), normalised to mean 1.
++    Every training subject then has the same expected number of draws per epoch regardless of how many
++    scans/sessions they have.  Computed from the training split only (callers pass tr.subject_id)."""
++    ids = pd.Series(np.asarray(subject_ids))
++    if ids.empty:
++        raise ValueError("subject_balanced_weights: empty training split")
++    n = ids.map(ids.value_counts()).to_numpy(dtype=float)
++    w = 1.0 / n
++    return w / w.mean()
++
++
++def check_sampling_cfg(cfg):
++    if cfg.get("subject_balanced") and cfg.get("reweight_tail"):
++        raise ValueError("subject_balanced and reweight_tail are mutually exclusive (one factor per experiment)")
++
++
+ def make_loaders(cfg, tr, va, store, workers, dev):
+     pin = dev.type == "cuda"
++    check_sampling_cfg(cfg)
+     train_ds, val_ds = K.ScanDS(store, tr), K.ScanDS(store, va)
+-    if cfg.get("reweight_tail"):
++    if cfg.get("subject_balanced"):
++        sampler = WeightedRandomSampler(subject_balanced_weights(tr.subject_id.values), num_samples=len(tr), replacement=True)
++        tl = DataLoader(train_ds, batch_size=cfg["batch_size"], sampler=sampler, num_workers=workers,
++                        pin_memory=pin, drop_last=False)
++    elif cfg.get("reweight_tail"):
+         sampler = WeightedRandomSampler(K.tail_weights(tr.age.values), num_samples=len(tr), replacement=True)
+         tl = DataLoader(train_ds, batch_size=cfg["batch_size"], sampler=sampler, num_workers=workers,
+                         pin_memory=pin, drop_last=False)
+@@ -161,6 +189,9 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
+     if save and not force and resume_ckpt.exists():
+         st = T._load_torch(resume_ckpt, dev)
+         if isinstance(st, dict) and st.get("checkpoint_kind") == "v5_training_resume":
++            if st.get("cfg_hash") not in (None, cfg_hash(cfg)):
++                raise RuntimeError(f"{resume_ckpt} was written with a different config; refusing to resume "
++                                   f"(use --force to restart, or a new --name)")
+             model.load_state_dict(st["model_state_dict"])
+             opt.load_state_dict(st["optimizer_state_dict"])
+             sched.load_state_dict(st["scheduler_state_dict"])
+@@ -228,7 +259,7 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
+                   + f" | lr {opt.param_groups[0]['lr']:.2e} | {time.time() - t0:.0f}s")
+             if save:
+                 T._atomic_torch_save(dict(
+-                    checkpoint_kind="v5_training_resume", tag=tag, next_epoch=ep + 1, best_val_mae=best,
++                    checkpoint_kind="v5_training_resume", tag=tag, cfg_hash=cfg_hash(cfg), next_epoch=ep + 1, best_val_mae=best,
+                     best_epoch=best_ep, best_val_mae_ema=best_e, best_epoch_ema=best_e_ep, bad_epochs=bad,
+                     step=step, history=hist, model_state_dict=model.state_dict(),
+                     optimizer_state_dict=opt.state_dict(), scheduler_state_dict=sched.state_dict(),
+@@ -242,7 +273,7 @@ def train_one(name, cfg, fold, seed, man, store, bins, dev, *, epochs, patience,
+         print(f"\n[INTERRUPTED] {tag}: latest completed epoch checkpoint preserved.")
+         raise
+ 
+-    except Exception as e:
++    except BaseException as e:                                # incl. SystemExit (SIGTERM); never log such a run as "completed"
+         status, reason = "failed", f"{type(e).__name__}: {e}"
+         traceback.print_exc()
+         raise
+@@ -323,6 +354,17 @@ def main():
+             assert not (set(tr.subject_id) & set(va.subject_id)) and (tr.fold != f).all() and (va.fold != f).all()
+             print(f"fold {f}: train {len(tr)} scans/{tr.subject_id.nunique()} subj | val {len(va)}/{va.subject_id.nunique()} | "
+                   f"held-out CN {int(((man.fold == f) & (man.CDRTOT == 0)).sum())} -- subject-disjoint OK")
++            check_sampling_cfg(cfg)
++            if cfg.get("subject_balanced"):
++                w = subject_balanced_weights(tr.subject_id.values)
++                per_subj = pd.Series(w).groupby(tr.subject_id.values).sum()
++                assert np.allclose(per_subj / per_subj.sum(), 1.0 / len(per_subj)), "subjects not equally weighted"
++                assert abs(w.mean() - 1.0) < 1e-9
++                n_scans = tr.groupby("subject_id").size()
++                print(f"   subject-balanced sampling: {len(per_subj)} subjects, scans/subject min {n_scans.min()} "
++                      f"median {int(n_scans.median())} max {n_scans.max()}; per-subject draw prob = {1/len(per_subj):.5f} "
++                      f"(max/min subject prob ratio {per_subj.max()/per_subj.min():.6f}); "
++                      f"scan weight range {w.min():.3f}-{w.max():.3f}; sampler draws/epoch = {len(tr)}")
+         return
+ 
+     store = K.ScanStore()

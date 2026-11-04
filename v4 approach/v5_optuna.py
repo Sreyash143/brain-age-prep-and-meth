@@ -58,6 +58,7 @@ def make_objective(base_cfg, outer_fold, man, store, bins, dev, args, build_mode
 
 
 def run_study(base_cfg, outer_fold, man, store, bins, dev, args, build_model_fn=None):
+    C5.OPTUNA_DIR.mkdir(parents=True, exist_ok=True)       # config_v5 only creates it at import time (cwd-dependent)
     pruner = optuna.pruners.HyperbandPruner() if args.prune else optuna.pruners.NopPruner()
     study = optuna.create_study(
         study_name=f"{args.experiment}_outer{outer_fold}", direction="minimize",

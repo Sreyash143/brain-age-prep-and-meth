@@ -46,10 +46,40 @@ EXPERIMENTS = {
         description="v4_sfcn_zscore_ablation with the L1 term replaced by Huber(delta=1) "
                     "(v4_sfcn_kl_huber's change). EMA(0.999) of weights tracked in the same run.",
     ),
+        # V5.2.  Same as V5.1 (tail reweighting OFF, run as --name v5_1_no_tail --set reweight_tail=false) PLUS
+    # subject-balanced sampling: scan weight 1/n_i from the TRAINING split only.  One factor vs V5.1.
+    "v5_2_subject_balanced": derive(
+        loss="kl_huber", l1_weight=0.0, huber_delta=1.0, ema_decay=0.999,
+        reweight_tail=False, subject_balanced=True,
+        description="V5.1 (no tail reweighting) + subject-balanced WeightedRandomSampler (w=1/n_scans_of_subject).",
+    ),
     # Optional controls, only needed if the paper must attribute the effect to one factor.
     "v5_z_ctl_ema": derive(
         ema_decay=0.999,
         description="v4_sfcn_zscore_ablation re-run with EMA tracking only (control for EMA).",
+    ),
+    # V5.3: V5.1 baseline + mild age-aware sampling.
+    # Tail reweighting and subject balancing remain disabled.
+    "v5_3_mild_age_balanced": derive(
+        loss="kl_huber",
+        l1_weight=0.0,
+        huber_delta=1.0,
+        ema_decay=0.999,
+
+        reweight_tail=False,
+        subject_balanced=False,
+        age_balanced=True,
+
+        age_balance_bin_width=5,
+        age_balance_exponent=0.25,
+        age_balance_min_weight=0.5,
+        age_balance_max_weight=2.0,
+
+        description=(
+            "V5.1 no-tail baseline + mild age-bin-balanced "
+            "sampling, 5-year bins, exponent 0.25, "
+            "weights capped at [0.5, 2.0]."
+        ),
     ),
 }
 
