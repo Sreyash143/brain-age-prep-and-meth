@@ -1,0 +1,6 @@
+model,sampling_strategy,checkpoint_type,description
+V4,V4 baseline,V4 selected checkpoint,Baseline SFCN configuration
+V5,Tail reweighting,RAW / EMA,V5 training configuration
+V5.1,No tail reweighting,RAW / EMA,V5 configuration with reweight_tail=False
+V5.2,Subject-balanced,RAW / EMA,Inverse scan-count subject sampling
+V5.3,Mild age-balanced,RAW / EMA,"Five-year bins, exponent 0.25, weights clipped 0.5-2.0"

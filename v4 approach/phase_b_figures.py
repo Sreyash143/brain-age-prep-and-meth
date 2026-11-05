@@ -725,6 +725,378 @@ def subject_prediction_plot(data):
 
     savefig("fig15_subject_predicted_vs_actual.png")
 
+
+def generate_detailed_results_tables(data):
+    """
+    Generate detailed numerical result tables from the common OOF cohort.
+    No model training or prediction modification is performed.
+    """
+
+    # ---------------------------------------------------------
+    # T1. Evaluation cohort characteristics
+    # ---------------------------------------------------------
+    df = data[FINAL].copy()
+
+    cohort = pd.DataFrame([{
+        "n_scans": len(df),
+        "n_unique_subjects": df.subject_id.nunique(),
+        "n_folds": df.fold.nunique(),
+        "mean_age": df.age.mean(),
+        "sd_age": df.age.std(),
+        "min_age": df.age.min(),
+        "max_age": df.age.max(),
+        "median_age": df.age.median()
+    }])
+
+    cohort.to_csv(TABLE / "T01_evaluation_cohort.csv", index=False)
+
+    # Age-group distribution. Subject counts can overlap across groups.
+    age_rows = []
+    for band in AGE_ORDER:
+        g = df[df.age_group.astype(str) == band]
+        age_rows.append({
+            "age_group": band,
+            "n_scans": len(g),
+            "n_subjects": g.subject_id.nunique(),
+            "mean_age": g.age.mean() if len(g) else np.nan,
+            "sd_age": g.age.std() if len(g) > 1 else np.nan
+        })
+
+    pd.DataFrame(age_rows).to_csv(
+        TABLE / "T01b_age_group_distribution.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T2 and T3. Overall scan and subject-level performance
+    # ---------------------------------------------------------
+    overall_rows = []
+
+    for label, model_df in data.items():
+
+        # Scan-weighted performance
+        e = model_df.error
+        overall_rows.append({
+            "model": label,
+            "evaluation_unit": "scan",
+            "n_scans": len(model_df),
+            "n_subjects": model_df.subject_id.nunique(),
+            "MAE": e.abs().mean(),
+            "RMSE": np.sqrt((e ** 2).mean()),
+            "R2": 1 - (e ** 2).sum() /
+                 ((model_df.age - model_df.age.mean()) ** 2).sum(),
+            "bias": e.mean(),
+            "error_sd": e.std()
+        })
+
+        # Subject-mean prediction performance
+        subj = (
+            model_df.groupby("subject_id")
+            .agg(
+                age=("age", "mean"),
+                predicted_age=("predicted_age", "mean")
+            )
+            .reset_index()
+        )
+
+        se = subj.predicted_age - subj.age
+
+        overall_rows.append({
+            "model": label,
+            "evaluation_unit": "subject_mean_prediction",
+            "n_scans": len(model_df),
+            "n_subjects": len(subj),
+            "MAE": se.abs().mean(),
+            "RMSE": np.sqrt((se ** 2).mean()),
+            "R2": 1 - (se ** 2).sum() /
+                 ((subj.age - subj.age.mean()) ** 2).sum(),
+            "bias": se.mean(),
+            "error_sd": se.std()
+        })
+
+    overall = pd.DataFrame(overall_rows)
+    overall.to_csv(TABLE / "T02_T03_overall_model_performance.csv",
+                   index=False)
+
+    # Separate convenient versions
+    overall[overall.evaluation_unit == "scan"].to_csv(
+        TABLE / "T02_scan_level_model_performance.csv", index=False
+    )
+
+    overall[overall.evaluation_unit == "subject_mean_prediction"].to_csv(
+        TABLE / "T03_subject_level_model_performance.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T4 and T5. Fold-wise metrics and fold summary
+    # ---------------------------------------------------------
+    fold_rows = []
+
+    for label, model_df in data.items():
+        for fold, g in model_df.groupby("fold"):
+            err = g.error
+
+            fold_rows.append({
+                "model": label,
+                "fold": int(fold),
+                "n_scans": len(g),
+                "n_subjects": g.subject_id.nunique(),
+                "MAE": err.abs().mean(),
+                "RMSE": np.sqrt((err ** 2).mean()),
+                "bias": err.mean()
+            })
+
+    fold_table = pd.DataFrame(fold_rows)
+
+    fold_table.to_csv(
+        TABLE / "T04_foldwise_performance.csv", index=False
+    )
+
+    fold_summary = (
+        fold_table.groupby("model")
+        .agg(
+            n_folds=("fold", "nunique"),
+            MAE_mean=("MAE", "mean"),
+            MAE_sd=("MAE", "std"),
+            MAE_min=("MAE", "min"),
+            MAE_max=("MAE", "max"),
+            RMSE_mean=("RMSE", "mean"),
+            RMSE_sd=("RMSE", "std"),
+            bias_mean=("bias", "mean"),
+            bias_sd=("bias", "std")
+        )
+        .reset_index()
+    )
+
+    fold_summary.to_csv(
+        TABLE / "T05_fold_summary.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T6. Age-stratified subject-level performance
+    # ---------------------------------------------------------
+    age_rows = []
+
+    for label, model_df in data.items():
+
+        subj_age = (
+            model_df.groupby(
+                ["age_group", "subject_id"], observed=True
+            )
+            .agg(
+                age=("age", "mean"),
+                predicted_age=("predicted_age", "mean")
+            )
+            .reset_index()
+        )
+
+        subj_age["error"] = (
+            subj_age.predicted_age - subj_age.age
+        )
+
+        for band in AGE_ORDER:
+            g = subj_age[subj_age.age_group.astype(str) == band]
+
+            if g.empty:
+                continue
+
+            age_rows.append({
+                "model": label,
+                "age_group": band,
+                "n_subjects": len(g),
+                "MAE": g.error.abs().mean(),
+                "RMSE": np.sqrt((g.error ** 2).mean()),
+                "bias": g.error.mean(),
+                "error_sd": g.error.std()
+            })
+
+    age_table = pd.DataFrame(age_rows)
+
+    age_table.to_csv(
+        TABLE / "T06_age_stratified_performance.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T7. Prediction-error distribution
+    # ---------------------------------------------------------
+    error_rows = []
+
+    for label, model_df in data.items():
+        ae = model_df.abs_error.dropna()
+        e = model_df.error.dropna()
+
+        error_rows.append({
+            "model": label,
+            "n_scans": len(ae),
+            "mean_absolute_error": ae.mean(),
+            "median_absolute_error": ae.median(),
+            "absolute_error_q25": ae.quantile(0.25),
+            "absolute_error_q75": ae.quantile(0.75),
+            "absolute_error_q90": ae.quantile(0.90),
+            "absolute_error_q95": ae.quantile(0.95),
+            "maximum_absolute_error": ae.max(),
+            "mean_signed_error": e.mean(),
+            "signed_error_sd": e.std()
+        })
+
+    pd.DataFrame(error_rows).to_csv(
+        TABLE / "T07_error_distribution.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T8. Percentage within clinically interpretable error
+    # thresholds. These are descriptive thresholds, not
+    # clinical accuracy claims.
+    # ---------------------------------------------------------
+    threshold_rows = []
+
+    thresholds = [1, 2, 3, 5, 10]
+
+    for label, model_df in data.items():
+        ae = model_df.abs_error.dropna()
+
+        row = {
+            "model": label,
+            "n_scans": len(ae)
+        }
+
+        for threshold in thresholds:
+            row[f"within_{threshold}_years_pct"] = (
+                100 * (ae <= threshold).mean()
+            )
+
+        threshold_rows.append(row)
+
+    pd.DataFrame(threshold_rows).to_csv(
+        TABLE / "T08_error_threshold_analysis.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T9. Paired bootstrap results
+    # ---------------------------------------------------------
+    bootstrap_path = RESULTS / "paired_subject_bootstrap.csv"
+
+    if bootstrap_path.exists():
+        bootstrap = pd.read_csv(bootstrap_path)
+
+        bootstrap.to_csv(
+            TABLE / "T09_paired_bootstrap_comparisons.csv",
+            index=False
+        )
+    else:
+        warnings.warn(
+            "Paired bootstrap file not found; T09 was not generated."
+        )
+
+    # ---------------------------------------------------------
+    # T10. Age-stratified subject-level bias
+    # ---------------------------------------------------------
+    bias_rows = []
+
+    final_subj = (
+        df.groupby(["age_group", "subject_id"], observed=True)
+        .agg(
+            age=("age", "mean"),
+            predicted_age=("predicted_age", "mean")
+        )
+        .reset_index()
+    )
+
+    final_subj["bias"] = (
+        final_subj.predicted_age - final_subj.age
+    )
+
+    for band in AGE_ORDER:
+        g = final_subj[final_subj.age_group.astype(str) == band]
+        n = len(g)
+
+        if n == 0:
+            continue
+
+        mean_bias = g.bias.mean()
+        sd = g.bias.std(ddof=1) if n > 1 else np.nan
+        se = sd / np.sqrt(n) if n > 1 else np.nan
+
+        bias_rows.append({
+            "age_group": band,
+            "n_subjects": n,
+            "mean_bias": mean_bias,
+            "sd_bias": sd,
+            "ci95_lower_approx": mean_bias - 1.96 * se
+                if np.isfinite(se) else np.nan,
+            "ci95_upper_approx": mean_bias + 1.96 * se
+                if np.isfinite(se) else np.nan
+        })
+
+    pd.DataFrame(bias_rows).to_csv(
+        TABLE / "T10_age_stratified_bias.csv", index=False
+    )
+
+    # ---------------------------------------------------------
+    # T11. Calibration table
+    # ---------------------------------------------------------
+    calibration_path = TABLE / "v51_raw_calibration_by_age.csv"
+
+    if calibration_path.exists():
+        pd.read_csv(calibration_path).to_csv(
+            TABLE / "T11_calibration_by_age.csv", index=False
+        )
+
+    # ---------------------------------------------------------
+    # T12. Uncertainty analysis
+    # ---------------------------------------------------------
+    uncertainty_path = TABLE / "uncertainty_analysis.csv"
+
+    if uncertainty_path.exists():
+        pd.read_csv(uncertainty_path).to_csv(
+            TABLE / "T12_prediction_uncertainty.csv", index=False
+        )
+
+    # ---------------------------------------------------------
+    # T13. Experiment configuration summary
+    # ---------------------------------------------------------
+    # Describes the documented differences between experiments.
+    # Verify against archived config files before paper submission.
+    experiment_rows = [
+        {
+            "model": "V4",
+            "sampling_strategy": "V4 baseline",
+            "checkpoint_type": "V4 selected checkpoint",
+            "description": "Baseline SFCN configuration"
+        },
+        {
+            "model": "V5",
+            "sampling_strategy": "Tail reweighting",
+            "checkpoint_type": "RAW / EMA",
+            "description": "V5 training configuration"
+        },
+        {
+            "model": "V5.1",
+            "sampling_strategy": "No tail reweighting",
+            "checkpoint_type": "RAW / EMA",
+            "description": "V5 configuration with reweight_tail=False"
+        },
+        {
+            "model": "V5.2",
+            "sampling_strategy": "Subject-balanced",
+            "checkpoint_type": "RAW / EMA",
+            "description": "Inverse scan-count subject sampling"
+        },
+        {
+            "model": "V5.3",
+            "sampling_strategy": "Mild age-balanced",
+            "checkpoint_type": "RAW / EMA",
+            "description": "Five-year bins, exponent 0.25, weights clipped 0.5-2.0"
+        }
+    ]
+
+    pd.DataFrame(experiment_rows).to_csv(
+        TABLE / "T13_experiment_configuration_summary.csv",
+        index=False
+    )
+
+    print("\nDetailed results tables generated.")
+
+
 def main():
     print("Loading prediction files...")
     data = load_predictions()
@@ -755,6 +1127,9 @@ def main():
     age_group_cohort_distribution(data)
     age_stratified_bias(data)
     subject_prediction_plot(data)
+    print("Generating detailed results tables...")
+    generate_detailed_results_tables(data)
+    
     readme = """# Phase B outputs
 
 Generated from the existing out-of-fold prediction CSVs and diagnostic bootstrap table.
