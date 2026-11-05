@@ -398,6 +398,333 @@ def uncertainty_analysis(data):
     (REPORT / "uncertainty_findings.txt").write_text(text + "\n", encoding="utf-8")
 
 
+def model_metric_dashboard(data):
+    """Compare all models using subject-mean-prediction metrics."""
+    rows = []
+    for label, df in data.items():
+        subj = (
+            df.groupby("subject_id")
+              .agg(
+                  age=("age", "mean"),
+                  predicted_age=("predicted_age", "mean")
+              )
+              .reset_index()
+        )
+        err = subj.predicted_age - subj.age
+
+        rows.append({
+            "model": label,
+            "MAE": err.abs().mean(),
+            "RMSE": np.sqrt((err ** 2).mean()),
+            "R2": 1 - (err ** 2).sum() /
+                 ((subj.age - subj.age.mean()) ** 2).sum(),
+            "bias": err.mean()
+        })
+
+    metrics = pd.DataFrame(rows)
+    metrics.to_csv(TABLE / "model_metric_dashboard.csv", index=False)
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 9))
+    x = np.arange(len(metrics))
+    labels = metrics.model.tolist()
+
+    plots = [
+        ("MAE", "MAE (years)", "Subject-level MAE"),
+        ("RMSE", "RMSE (years)", "Subject-level RMSE"),
+        ("R2", "R²", "Subject-level R²"),
+        ("bias", "Bias (years)", "Subject-level prediction bias")
+    ]
+
+    for ax, (column, ylabel, title) in zip(axes.flat, plots):
+        ax.bar(x, metrics[column])
+        if column == "bias":
+            ax.axhline(0, linestyle="--", linewidth=1)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=40, ha="right")
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.grid(axis="y", alpha=0.2)
+
+    savefig("fig09_model_metric_dashboard.png")
+
+
+def fold_heatmap(data):
+    """Display MAE consistency across the five outer folds."""
+    rows = []
+
+    for label, df in data.items():
+        for fold, group in df.groupby("fold"):
+            rows.append({
+                "model": label,
+                "fold": int(fold),
+                "MAE": group.abs_error.mean()
+            })
+
+    fold_df = pd.DataFrame(rows)
+    pivot = fold_df.pivot(
+        index="model", columns="fold", values="MAE"
+    )
+    pivot.to_csv(TABLE / "fold_mae_heatmap.csv")
+
+    fig, ax = plt.subplots(figsize=(8.5, 6))
+    im = ax.imshow(pivot.values, aspect="auto")
+
+    ax.set_xticks(np.arange(len(pivot.columns)))
+    ax.set_xticklabels([f"Fold {f}" for f in pivot.columns])
+    ax.set_yticks(np.arange(len(pivot.index)))
+    ax.set_yticklabels(pivot.index)
+
+    for i in range(pivot.shape[0]):
+        for j in range(pivot.shape[1]):
+            ax.text(
+                j, i, f"{pivot.iloc[i, j]:.2f}",
+                ha="center", va="center", fontsize=8
+            )
+
+    ax.set_title("Fold-wise MAE heatmap across model variants")
+    ax.set_xlabel("Outer cross-validation fold")
+    ax.set_ylabel("Model")
+    fig.colorbar(im, ax=ax, label="MAE (years)")
+
+    savefig("fig10_fold_mae_heatmap.png")
+
+
+def subject_bland_altman(data):
+    """Bland–Altman agreement plot using one averaged value per subject."""
+    df = data[FINAL]
+
+    subj = (
+        df.groupby("subject_id")
+          .agg(
+              actual_age=("age", "mean"),
+              predicted_age=("predicted_age", "mean")
+          )
+          .reset_index()
+    )
+
+    subj["mean_age"] = (
+        subj.actual_age + subj.predicted_age
+    ) / 2
+
+    subj["difference"] = (
+        subj.predicted_age - subj.actual_age
+    )
+
+    mean_diff = subj.difference.mean()
+    sd_diff = subj.difference.std(ddof=1)
+
+    lower = mean_diff - 1.96 * sd_diff
+    upper = mean_diff + 1.96 * sd_diff
+
+    subj.to_csv(
+        TABLE / "subject_level_bland_altman.csv",
+        index=False
+    )
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(
+        subj.mean_age,
+        subj.difference,
+        alpha=0.45,
+        s=18
+    )
+
+    ax.axhline(mean_diff, linestyle="-",
+               label=f"Mean difference = {mean_diff:.2f}")
+    ax.axhline(lower, linestyle="--",
+               label=f"Lower 95% limits = {lower:.2f}")
+    ax.axhline(upper, linestyle="--",
+               label=f"Upper 95% limits = {upper:.2f}")
+
+    ax.set(
+        xlabel="Mean of chronological and predicted age (years)",
+        ylabel="Predicted − chronological age (years)",
+        title="Subject-level Bland–Altman agreement: V5.1 RAW"
+    )
+    ax.legend(frameon=False, fontsize=8)
+
+    savefig("fig11_subject_bland_altman.png")
+
+
+def absolute_error_ecdf(data):
+    """Cumulative distribution of absolute prediction errors."""
+    fig, ax = plt.subplots(figsize=(8, 5.5))
+
+    for label, df in data.items():
+        errors = np.sort(df.abs_error.dropna().values)
+        if len(errors) == 0:
+            continue
+
+        cumulative = np.arange(1, len(errors) + 1) / len(errors)
+        ax.plot(errors, cumulative, linewidth=1.5, label=label)
+
+    ax.set(
+        xlabel="Absolute prediction error (years)",
+        ylabel="Cumulative proportion of scans",
+        title="Cumulative distribution of absolute prediction error"
+    )
+    ax.set_xlim(left=0)
+    ax.set_ylim(0, 1.02)
+    ax.grid(alpha=0.2)
+    ax.legend(ncol=3, fontsize=8, frameon=False)
+
+    savefig("fig12_absolute_error_ecdf.png")
+
+
+def age_group_cohort_distribution(data):
+    """Show scan and unique-subject counts in each age group."""
+    df = data[FINAL]
+
+    scan_counts = (
+        df.groupby("age_group", observed=True)
+          .size()
+          .reindex(AGE_ORDER, fill_value=0)
+    )
+
+    subject_counts = (
+        df.groupby("age_group", observed=True)
+          .subject_id.nunique()
+          .reindex(AGE_ORDER, fill_value=0)
+    )
+
+    out = pd.DataFrame({
+        "age_group": AGE_ORDER,
+        "n_scans": scan_counts.values,
+        "n_subjects": subject_counts.values
+    })
+
+    out.to_csv(TABLE / "age_group_cohort_distribution.csv", index=False)
+
+    x = np.arange(len(AGE_ORDER))
+    width = 0.36
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    ax.bar(x - width / 2, out.n_scans, width, label="Scans")
+    ax.bar(x + width / 2, out.n_subjects, width, label="Unique subjects")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(AGE_ORDER)
+    ax.set_xlabel("Chronological age group")
+    ax.set_ylabel("Count")
+    ax.set_title("Evaluation cohort distribution by age group")
+    ax.legend(frameon=False)
+
+    savefig("fig13_age_group_cohort_distribution.png")
+
+
+def age_stratified_bias(data):
+    """
+    Subject-level bias by age group.
+    Each subject contributes one averaged prediction per age group.
+    Error bars are approximate 95% CIs using the standard error.
+    """
+    df = data[FINAL]
+
+    subj = (
+        df.groupby(["age_group", "subject_id"], observed=True)
+          .agg(
+              age=("age", "mean"),
+              predicted_age=("predicted_age", "mean")
+          )
+          .reset_index()
+    )
+
+    subj["bias"] = subj.predicted_age - subj.age
+
+    rows = []
+    for band in AGE_ORDER:
+        group = subj[subj.age_group.astype(str) == band]
+        n = len(group)
+
+        if n == 0:
+            continue
+
+        mean_bias = group.bias.mean()
+        sd = group.bias.std(ddof=1) if n > 1 else np.nan
+        se = sd / np.sqrt(n) if n > 1 else np.nan
+
+        rows.append({
+            "age_group": band,
+            "n_subjects": n,
+            "mean_bias": mean_bias,
+            "sd_bias": sd,
+            "ci95_lower": mean_bias - 1.96 * se
+                if np.isfinite(se) else np.nan,
+            "ci95_upper": mean_bias + 1.96 * se
+                if np.isfinite(se) else np.nan
+        })
+
+    out = pd.DataFrame(rows)
+    out.to_csv(TABLE / "age_stratified_bias.csv", index=False)
+
+    x = np.arange(len(out))
+    y = out.mean_bias.to_numpy()
+    lower = y - out.ci95_lower.to_numpy()
+    upper = out.ci95_upper.to_numpy() - y
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    ax.errorbar(
+        x, y, yerr=[lower, upper],
+        fmt="o", capsize=4, linewidth=1.5
+    )
+    ax.axhline(0, linestyle="--", linewidth=1)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(out.age_group)
+    ax.set(
+        xlabel="Chronological age group",
+        ylabel="Mean prediction bias (years)",
+        title="V5.1 RAW age-stratified prediction bias"
+    )
+    ax.grid(axis="y", alpha=0.2)
+
+    savefig("fig14_age_stratified_bias.png")
+
+
+def subject_prediction_plot(data):
+    """Predicted versus actual age after averaging repeated scans per subject."""
+    df = data[FINAL]
+
+    subj = (
+        df.groupby("subject_id")
+          .agg(
+              actual_age=("age", "mean"),
+              predicted_age=("predicted_age", "mean")
+          )
+          .reset_index()
+    )
+
+    subj.to_csv(TABLE / "subject_level_predictions.csv", index=False)
+
+    lo = min(subj.actual_age.min(), subj.predicted_age.min())
+    hi = max(subj.actual_age.max(), subj.predicted_age.max())
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+    hb = ax.hexbin(
+        subj.actual_age,
+        subj.predicted_age,
+        gridsize=30,
+        mincnt=1,
+        bins="log"
+    )
+
+    ax.plot(
+        [lo, hi], [lo, hi],
+        linestyle="--", linewidth=1.5,
+        label="Identity line"
+    )
+
+    ax.set(
+        xlabel="Mean chronological age (years)",
+        ylabel="Mean predicted age (years)",
+        title="Subject-level predicted versus actual age: V5.1 RAW"
+    )
+
+    fig.colorbar(hb, ax=ax, label="Log subject count")
+    ax.legend(frameon=False)
+
+    savefig("fig15_subject_predicted_vs_actual.png")
+
 def main():
     print("Loading prediction files...")
     data = load_predictions()
@@ -421,7 +748,13 @@ def main():
     calibration_bias(data)
     bootstrap_plot()
     uncertainty_analysis(data)
-
+    model_metric_dashboard(data)
+    fold_heatmap(data)
+    subject_bland_altman(data)
+    absolute_error_ecdf(data)
+    age_group_cohort_distribution(data)
+    age_stratified_bias(data)
+    subject_prediction_plot(data)
     readme = """# Phase B outputs
 
 Generated from the existing out-of-fold prediction CSVs and diagnostic bootstrap table.
