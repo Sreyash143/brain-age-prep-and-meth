@@ -27,6 +27,9 @@ FILES = {
 
     "V5_2_RAW": "v5/predictions/raw_v5_2_subject_balanced.csv",
     "V5_2_EMA": "v5/predictions/raw_v5_2_subject_balanced_ema.csv",
+
+    "V5_3_RAW": "v5/predictions/raw_v5_3_mild_age_balanced.csv",
+    "V5_3_EMA": "v5/predictions/raw_v5_3_mild_age_balanced_ema.csv",
 }
 
 OUT = "v5/analysis/results"
@@ -580,41 +583,41 @@ uncertainty_df.to_csv(
 )
 
 
+
 # ============================================================
-# 9. PAIRED SUBJECT-LEVEL BOOTSTRAP
+# 9. PAIRED CLUSTER BOOTSTRAP
 # ============================================================
 
-print("\n========== PAIRED SUBJECT-LEVEL BOOTSTRAP ==========")
+print("\n========== PAIRED CLUSTER BOOTSTRAP ==========")
 
-# Primary metric:
-# Subject-level mean absolute error.
+# Positive difference: model A has higher error.
+# Negative difference: model A has lower error.
 #
-# Every subject contributes equally.
+# Two distinct overall estimands:
 #
-# Difference:
-# MAE(model_a) - MAE(model_b)
+# 1. scan_weighted:
+#    Pooled absolute error over all scans.
+#    Subjects are resampled as clusters.
 #
-# Negative difference favours model_a.
-# Positive difference favours model_b.
+# 2. subject_mean_prediction:
+#    Average predictions and actual ages within each subject,
+#    then calculate MAE across subjects.
+#
+# Age-specific analysis:
+#    Average predictions and actual ages within each
+#    subject-age-group, then calculate MAE across subjects.
+
 
 comparisons = [
+    ("V5_1_RAW", "V4"),
+    ("V5_1_RAW", "V5_RAW"),
+    ("V5_1_RAW", "V5_2_RAW"),
+    ("V5_1_RAW", "V5_3_RAW"),
 
-    # Primary: effect of subject-balanced sampling
-    ("V5_2_RAW", "V5_1_RAW"),
-
-    # EMA comparison between V5.2 and V5.1
-    ("V5_2_EMA", "V5_1_EMA"),
-
-    # Comparison against V4
-    ("V5_2_RAW", "V4"),
-    ("V5_2_EMA", "V4"),
-
-    # Raw versus EMA within V5.2
-    ("V5_2_EMA", "V5_2_RAW"),
-
-    # Additional comparisons against V5
-    ("V5_2_RAW", "V5_RAW"),
-    ("V5_2_EMA", "V5_EMA"),
+    ("V5_1_RAW", "V5_1_EMA"),
+    ("V5_2_RAW", "V5_2_EMA"),
+    ("V5_3_RAW", "V5_3_EMA"),
+    ("V5_RAW", "V5_EMA"),
 ]
 
 bootstrap_results = []
@@ -622,24 +625,33 @@ bootstrap_results = []
 rng = np.random.default_rng(SEED)
 
 
-def paired_bootstrap(
+def percentile_ci(values):
+    return np.percentile(values, [2.5, 97.5])
+
+
+def paired_cluster_bootstrap(
     a,
     b,
     model_a,
     model_b,
-    group_label,
+    metric,
+    group_label="ALL",
 ):
     """
     Paired bootstrap over subjects.
 
-    Each subject is sampled as one unit.
-    Both models use the exact same sampled subjects.
+    Both models use identical subject samples in each
+    bootstrap replicate.
+
+    For scan-weighted MAE, each sampled subject contributes
+    all of their scans.
+
+    For subject-mean-prediction MAE, each subject contributes
+    one absolute error.
     """
 
-    paired = a[
-        ["subject_id", "MAE"]
-    ].merge(
-        b[["subject_id", "MAE"]],
+    paired = a.merge(
+        b,
         on="subject_id",
         suffixes=("_a", "_b"),
         validate="one_to_one",
@@ -648,97 +660,211 @@ def paired_bootstrap(
     if len(paired) < 2:
         return
 
-    differences = (
-        paired["MAE_a"] - paired["MAE_b"]
-    ).to_numpy()
+    n = len(paired)
 
-    observed = differences.mean()
+    if metric == "subject_mean_prediction":
 
-    n = len(differences)
-
-    boot = np.empty(N_BOOT)
-
-    for i in range(N_BOOT):
-
-        sample = rng.integers(
-            0,
-            n,
-            size=n,
+        differences = (
+            paired["MAE_a"].to_numpy()
+            - paired["MAE_b"].to_numpy()
         )
 
-        boot[i] = differences[sample].mean()
+        observed = differences.mean()
 
-    lo, hi = np.percentile(
-        boot,
-        [2.5, 97.5],
-    )
+        boot = np.empty(N_BOOT)
+
+        for i in range(N_BOOT):
+            sample = rng.integers(0, n, size=n)
+            boot[i] = differences[sample].mean()
+
+    elif metric == "scan_weighted":
+
+        # Each row represents one subject.
+        # Error sums and scan counts are retained so that
+        # subjects with more scans contribute proportionally
+        # to the pooled scan MAE.
+
+        sum_a = paired["abs_sum_a"].to_numpy()
+        sum_b = paired["abs_sum_b"].to_numpy()
+        count_a = paired["n_scans_a"].to_numpy()
+        count_b = paired["n_scans_b"].to_numpy()
+
+        observed = (
+            sum_a.sum() / count_a.sum()
+            - sum_b.sum() / count_b.sum()
+        )
+
+        boot = np.empty(N_BOOT)
+
+        for i in range(N_BOOT):
+
+            sample = rng.integers(0, n, size=n)
+
+            mae_a = (
+                sum_a[sample].sum()
+                / count_a[sample].sum()
+            )
+
+            mae_b = (
+                sum_b[sample].sum()
+                / count_b[sample].sum()
+            )
+
+            boot[i] = mae_a - mae_b
+
+    else:
+        raise ValueError(f"Unknown bootstrap metric: {metric}")
+
+    lo, hi = percentile_ci(boot)
 
     bootstrap_results.append({
-
         "model_a": model_a,
-
         "model_b": model_b,
-
         "comparison": f"{model_a} - {model_b}",
-
+        "metric": metric,
         "age_group": group_label,
-
         "n_subjects": n,
-
         "mean_MAE_difference": observed,
-
         "CI95_lower": lo,
-
         "CI95_upper": hi,
     })
 
 
 # ------------------------------------------------------------
-# Overall and age-specific comparisons
+# Prepare subject-level scan error sums for scan bootstrap.
+# ------------------------------------------------------------
+
+scan_subject = {}
+
+for name, df in models.items():
+
+    scan_subject[name] = (
+        df.groupby("subject_id")
+        .agg(
+            abs_sum=("abs_error", "sum"),
+            n_scans=("abs_error", "size"),
+        )
+        .reset_index()
+        .rename(
+            columns={
+                "abs_sum": "abs_sum",
+                "n_scans": "n_scans",
+            }
+        )
+    )
+
+
+# ------------------------------------------------------------
+# Prepare subject-mean-prediction data by age group.
+# This matches the subject_balanced age metric.
+# ------------------------------------------------------------
+
+subject_age_prediction = {}
+
+for name, df in models.items():
+
+    result = (
+        df.groupby(
+            ["age_group", "subject_id"],
+            observed=True,
+        )
+        .agg(
+            age=("age", "mean"),
+            predicted_age=("predicted_age", "mean"),
+        )
+        .reset_index()
+    )
+
+    result["MAE"] = (
+        result["predicted_age"] - result["age"]
+    ).abs()
+
+    subject_age_prediction[name] = result[
+        ["age_group", "subject_id", "MAE"]
+    ]
+
+
+# ------------------------------------------------------------
+# Run all overall and age-specific comparisons.
 # ------------------------------------------------------------
 
 for model_a, model_b in comparisons:
 
-    # Overall subject-level comparison.
-    paired_bootstrap(
-        subject_overall[model_a],
-        subject_overall[model_b],
-        model_a,
-        model_b,
-        "ALL",
+    # Overall scan-weighted MAE.
+    a = scan_subject[model_a].rename(
+        columns={
+            "abs_sum": "abs_sum_a",
+            "n_scans": "n_scans_a",
+        }
     )
 
-    # Age-specific comparisons.
+    b = scan_subject[model_b].rename(
+        columns={
+            "abs_sum": "abs_sum_b",
+            "n_scans": "n_scans_b",
+        }
+    )
+
+    paired_cluster_bootstrap(
+        a,
+        b,
+        model_a,
+        model_b,
+        metric="scan_weighted",
+    )
+
+    # Overall subject-mean-prediction MAE.
+    paired_cluster_bootstrap(
+        subject_overall[model_a][
+            ["subject_id", "MAE"]
+        ],
+        subject_overall[model_b][
+            ["subject_id", "MAE"]
+        ],
+        model_a,
+        model_b,
+        metric="subject_mean_prediction",
+    )
+
+    # Age-specific subject-mean-prediction MAE.
     for group in AGE_LABELS:
 
-        a = subject_age[model_a]
-
-        b = subject_age[model_b]
+        a = subject_age_prediction[model_a].copy()
+        b = subject_age_prediction[model_b].copy()
 
         a = a[
             a["age_group"].astype(str) == group
-        ]
+        ][["subject_id", "MAE"]]
 
         b = b[
             b["age_group"].astype(str) == group
-        ]
+        ][["subject_id", "MAE"]]
 
-        paired_bootstrap(
+        paired_cluster_bootstrap(
             a,
             b,
             model_a,
             model_b,
-            group,
+            metric="subject_mean_prediction",
+            group_label=group,
         )
 
 
-bootstrap_df = pd.DataFrame(
-    bootstrap_results
-)
+bootstrap_df = pd.DataFrame(bootstrap_results)
 
 bootstrap_df.to_csv(
     f"{OUT}/paired_subject_bootstrap.csv",
     index=False,
+)
+
+print(
+    "Bootstrap comparisons generated:",
+    len(bootstrap_df),
+)
+
+print(
+    "Bootstrap replicates per comparison:",
+    N_BOOT,
 )
 
 
@@ -876,6 +1002,45 @@ print(
     uncertainty_df.to_string(index=False)
 )
 
+print("\n")
+print("=" * 90)
+print("OVERALL PAIRED CLUSTER BOOTSTRAP")
+print("=" * 90)
+
+print(
+    bootstrap_df[
+        bootstrap_df["age_group"] == "ALL"
+    ][
+        [
+            "comparison",
+            "metric",
+            "n_subjects",
+            "mean_MAE_difference",
+            "CI95_lower",
+            "CI95_upper",
+        ]
+    ].to_string(index=False)
+)
+
+print("\n")
+print("=" * 90)
+print("AGE-SPECIFIC PAIRED SUBJECT BOOTSTRAP")
+print("=" * 90)
+
+print(
+    bootstrap_df[
+        bootstrap_df["age_group"] != "ALL"
+    ][
+        [
+            "comparison",
+            "age_group",
+            "n_subjects",
+            "mean_MAE_difference",
+            "CI95_lower",
+            "CI95_upper",
+        ]
+    ].to_string(index=False)
+)
 
 # ============================================================
 # 11. FINAL OUTPUT SUMMARY
